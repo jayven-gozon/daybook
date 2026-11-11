@@ -89,6 +89,10 @@ label{display:block;font-size:14px;font-weight:600;color:var(--mute);margin:12px
 .foot{text-align:center;color:var(--mute);font-size:12px;margin:24px 0 8px}
 #guide{position:fixed;inset:0;z-index:40;background:var(--bg);color:var(--ink);overflow:auto;padding:calc(14px + env(safe-area-inset-top,0px)) 20px calc(28px + env(safe-area-inset-bottom,0px))}
 #guide .in{max-width:520px;margin:0 auto}#guide ol{padding-left:20px}#guide li{margin:10px 0}
+.sheet .stk{position:sticky;top:0;z-index:6;background:var(--bg);margin:-16px -16px 0;padding:16px 16px 2px}
+.sheet .acts.fix{position:sticky;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);margin:16px -16px calc(-18px - env(safe-area-inset-bottom,0px));padding:10px 16px calc(14px + env(safe-area-inset-bottom,0px))}
+.top{position:sticky;top:0;z-index:8;background:var(--bg);margin:-18px -16px 8px;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 8px;border-bottom:1px solid var(--line)}
+.top h1{margin:0 0 10px}.top .nav{margin-bottom:0}.top .add{margin:0}
 </style>
 </head>
 <body>
@@ -135,9 +139,9 @@ function stats(d){
   return{tot:tot,ok:ok}
 }
 function head(title){
-  var h='<h1>'+title+'</h1><div class="nav"><button data-a="prev" aria-label="Previous day">‹</button><div class="dt">'+fmt(cur,{weekday:"long",month:"short",day:"numeric"})+'</div><button data-a="next" aria-label="Next day">›</button></div>';
+  var h='<div class="top"><h1>'+title+'</h1><div class="nav"><button data-a="prev" aria-label="Previous day">‹</button><div class="dt">'+fmt(cur,{weekday:"long",month:"short",day:"numeric"})+'</div><button data-a="next" aria-label="Next day">›</button></div>';
   if(cur!==today)h+='<button class="lnk" data-a="now">Back to today</button>';
-  return h
+  return h+'</div>'
 }
 function sleepBlock(d){
   var s=S.sl[d]||{};
@@ -175,7 +179,7 @@ function viewList(){
 }
 function viewHome(){
   var set={};S.e.forEach(function(x){set[x.date]=1});S.dates.forEach(function(d){set[d]=1});set[today]=1;
-  var ds=Object.keys(set).sort().reverse(),h='<h1>Daybook</h1><div class="add"><button class="btn" data-a="pick" style="width:100%">Add date</button></div>'+moodBar(today,"How are you today?")+'<button class="day" data-a="safe" style="border-left:5px solid var(--danger)"><b class="serif">My safety plan</b><span class="muted">'+(S.safe.signs||S.safe.steps||S.safe.people||S.safe.reasons?'Open':'Set up')+'</span></button>'+'<h2>Your days</h2>';
+  var ds=Object.keys(set).sort().reverse(),h='<div class="top"><h1>Daybook</h1><div class="add"><button class="btn" data-a="pick" style="width:100%">Add date</button></div></div>'+moodBar(today,"How are you today?")+'<button class="day" data-a="safe" style="border-left:5px solid var(--danger)"><b class="serif">My safety plan</b><span class="muted">'+(S.safe.signs||S.safe.steps||S.safe.people||S.safe.reasons?'Open':'Set up')+'</span></button>'+'<h2>Your days</h2>';
   ds.forEach(function(d){
     var es=S.e.filter(function(x){return x.date===d}),n=es.length,s=stats(d);
     var pv=es.slice(0,2).map(function(x){return esc(x.type==="emotion"?x.emotion:x.what)}).join(", ");
@@ -201,7 +205,7 @@ function weeklyHtml(){
   return '<h2>This week</h2><div class="card" style="display:block;cursor:default;border-left-color:var(--acc)">'+weekSummary().slice(1).map(function(l){return '<p>'+esc(l)+'</p>'}).join("")+'</div><label for="wq">Questions or notes for my therapist or psychiatrist</label><textarea id="wq">'+esc(S.q)+'</textarea><div class="add"><button class="btn ghost" data-a="wcopy">Copy summary</button></div>'
 }
 function viewHist(){
-  var h='<h1>More</h1>'+weeklyHtml()+'<h2>Tags</h2>'+lst("T",S.tags)+'<h2>Coping options</h2>'+lst("C",S.cope)+lockHtml()+'<h2>Backup</h2>';
+  var h='<div class="top"><h1>More</h1></div>'+weeklyHtml()+'<h2>Tags</h2>'+lst("T",S.tags)+'<h2>Coping options</h2>'+lst("C",S.cope)+lockHtml()+'<h2>Backup</h2>';
   h+='<p class="muted">Your journal is stored only on this device. Copy a backup now and then, and paste it back to restore.</p><div class="add"><button class="btn ghost" data-a="copy">Copy backup</button></div><label for="rs">Restore from backup</label><textarea id="rs" placeholder="Paste backup text here"></textarea><div class="add"><button class="btn" data-a="restore">Restore</button></div>';
   return h
 }
@@ -240,9 +244,9 @@ function sfContacts(){
   return '<h2>People I can call</h2>'+(c.length?c.map(function(x,i){var arm=armed==="sfdel"+i;return '<div style="display:flex;gap:8px;margin:6px 0"><a class="btn" style="flex:1;display:block;text-align:center;line-height:44px;text-decoration:none" href="tel:'+esc(telN(x.p))+'">Call '+esc(x.n)+'</a><button type="button" class="x'+(arm?' arm':'')+'" data-a="sfdel" data-id="'+i+'" aria-label="Remove '+esc(x.n)+'">'+(arm?'Remove?':'✕')+'</button></div>'}).join(""):'<p class="muted">No contacts yet. Add a name and number below.</p>')+'<div class="mini"><input id="cn" placeholder="Name" aria-label="Contact name" autocomplete="off"><input id="cp" type="tel" inputmode="tel" placeholder="Number" aria-label="Contact number" autocomplete="off"><button type="button" class="btn ghost" data-a="sfadd">Add</button></div>'
 }
 function drawSheet(){
-  if(sheet.safe){var sf=S.safe,old=$("#sheetHost .sheet"),st=old?old.scrollTop:0;$("#sheetHost").innerHTML='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Safety plan"><h2 style="margin-top:0">My safety plan</h2><p class="muted">Fill this in with your therapist or psychiatrist when you can. Open it whenever thoughts of self-harm come up.</p><div class="acts" style="margin-top:8px"><a class="btn" style="display:grid;place-items:center;text-decoration:none" href="tel:1553">Call NCMH 1553</a><a class="btn ghost" style="display:grid;place-items:center;text-decoration:none" href="tel:911">Call 911</a></div><p class="muted">NCMH also: 0917-899-8727. Please check that these numbers are still current.</p><p class="muted" style="margin-bottom:0">Tap a name to call that person.</p>'+sfContacts()+toolkit()+'<form id="sf">'+area("My warning signs","signs",sf.signs)+areaP("What sets off my irritation or panic","trig",sf.trig,"For example: feeling overwhelmed, a tense talk with my wife, work pressure")+areaP("When it is building: my step-away plan","away",sf.away,"Pause, STOP technique, make my baby safe, step away briefly, ground myself, then return")+area("Things I can do on my own","steps",sf.steps)+areaP("What I can say to my wife when I am overwhelmed","words",sf.words,"I need a short break and I will come back to talk calmly")+area("Notes on who can be with me or help","people",sf.people)+area("Why staying safe matters to me","reasons",sf.reasons)+dtF("Next therapy session","nxt",sf.nxt)+dtF("Psychiatric consultation","psy",sf.psy)+'<div class="acts"><button type="button" class="btn ghost" data-a="shut2">Close</button><button class="btn">Save</button></div></form></div></div>';var nw=$("#sheetHost .sheet");if(nw)nw.scrollTop=st;return}
+  if(sheet.safe){var sf=S.safe,old=$("#sheetHost .sheet"),st=old?old.scrollTop:0;$("#sheetHost").innerHTML='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Safety plan"><h2 style="margin-top:0">My safety plan</h2><p class="muted">Fill this in with your therapist or psychiatrist when you can. Open it whenever thoughts of self-harm come up.</p><div class="acts" style="margin-top:8px"><a class="btn" style="display:grid;place-items:center;text-decoration:none" href="tel:1553">Call NCMH 1553</a><a class="btn ghost" style="display:grid;place-items:center;text-decoration:none" href="tel:911">Call 911</a></div><p class="muted">NCMH also: 0917-899-8727. Please check that these numbers are still current.</p><p class="muted" style="margin-bottom:0">Tap a name to call that person.</p>'+sfContacts()+toolkit()+'<form id="sf">'+area("My warning signs","signs",sf.signs)+areaP("What sets off my irritation or panic","trig",sf.trig,"For example: feeling overwhelmed, a tense talk with my wife, work pressure")+areaP("When it is building: my step-away plan","away",sf.away,"Pause, STOP technique, make my baby safe, step away briefly, ground myself, then return")+area("Things I can do on my own","steps",sf.steps)+areaP("What I can say to my wife when I am overwhelmed","words",sf.words,"I need a short break and I will come back to talk calmly")+area("Notes on who can be with me or help","people",sf.people)+area("Why staying safe matters to me","reasons",sf.reasons)+dtF("Next therapy session","nxt",sf.nxt)+dtF("Psychiatric consultation","psy",sf.psy)+'<div class="acts fix"><button type="button" class="btn ghost" data-a="shut2">Close</button><button class="btn">Save</button></div></form></div></div>';var nw=$("#sheetHost .sheet");if(nw)nw.scrollTop=st;return}
   if(sheet.pick){$("#sheetHost").innerHTML='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Pick a date"><form id="pf"><label for="f_pd">Pick a date</label><input type="date" id="f_pd" name="pd" value="'+today+'"><div class="acts"><button type="button" class="btn ghost" data-a="shut2">Cancel</button><button class="btn">Add date</button></div></form></div></div>';return}var s=sheet,x=s.x,e=s.type==="emotion";
-  var h='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Entry"><div class="seg">'+(s.id?'':'<button data-a="seg" data-id="emotion" class="'+(e?'on':'')+'">Emotion</button><button data-a="seg" data-id="activity" class="'+(!e?'on':'')+'">Activity</button>')+(s.id?'<button class="on" disabled>'+(e?'Emotion':'Activity')+'</button>':'')+'</div><form id="ef">';
+  var h='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Entry"><div class="stk"><div class="seg">'+(s.id?'':'<button data-a="seg" data-id="emotion" class="'+(e?'on':'')+'">Emotion</button><button data-a="seg" data-id="activity" class="'+(!e?'on':'')+'">Activity</button>')+(s.id?'<button class="on" disabled>'+(e?'Emotion':'Activity')+'</button>':'')+'</div></div><form id="ef">';
   if(e){
     h+=fld("Emotion","emotion",x.emotion,"e.g. anxious, calm, irritated")+
     '<label for="f_intensity">How strong? <span id="iv">'+(x.intensity||5)+'</span>/10</label><input type="range" id="f_intensity" name="intensity" min="1" max="10" value="'+(x.intensity||5)+'">'+
@@ -255,7 +259,7 @@ function drawSheet(){
     fld("People I met (optional)","people",x.people)+
     fld("How I felt","felt",x.felt)+sel("Enjoyment (0–10)","pl",x.pl)+sel("Sense of achievement (0–10)","ma",x.ma)+chipsT()+area("Notes","notes",x.notes)
   }
-  h+='<div class="acts"><button type="button" class="btn ghost" data-a="shut2">Cancel</button><button class="btn">Save entry</button></div>';
+  h+='<div class="acts fix"><button type="button" class="btn ghost" data-a="shut2">Cancel</button><button class="btn">Save entry</button></div>';
   if(s.id)h+='<div class="acts"><button type="button" class="btn ghost" data-a="delE" style="color:var(--danger)">'+(armed==="E"?'Tap again to delete':'Delete entry')+'</button></div>';
   h+='</form></div></div>';
   $("#sheetHost").innerHTML=h;
