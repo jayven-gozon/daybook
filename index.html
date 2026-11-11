@@ -93,6 +93,14 @@ label{display:block;font-size:14px;font-weight:600;color:var(--mute);margin:12px
 .sheet .acts.fix{position:sticky;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);margin:16px -16px calc(-18px - env(safe-area-inset-bottom,0px));padding:10px 16px calc(14px + env(safe-area-inset-bottom,0px))}
 .top{position:sticky;top:0;z-index:8;background:var(--bg);margin:-18px -16px 8px;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 8px;border-bottom:1px solid var(--line)}
 .top h1{margin:0 0 10px}.top .nav{margin-bottom:0}.top .add{margin:0}
+html,body{overflow-x:hidden;max-width:100%;overscroll-behavior-x:none}
+body{touch-action:pan-y pinch-zoom}
+#app,.sheet,.sheet form{min-width:0;max-width:100%}
+.sheet{overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y pinch-zoom}
+input,select,textarea{min-width:0;max-width:100%}
+input[type=date],input[type=time],input[type=number]{-webkit-appearance:none;appearance:none;display:block;min-height:46px;text-align:left}
+.add input,.mini input{flex:1 1 0;width:auto;min-width:0}
+.chips,.chip{max-width:100%}
 </style>
 </head>
 <body>
