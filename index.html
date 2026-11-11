@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Daybook</title>
+<meta name="author" content="jayvengozon">
+<!-- Daybook, © 2026 jayvengozon™ -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Daybook">
@@ -80,6 +82,11 @@ label{display:block;font-size:14px;font-weight:600;color:var(--mute);margin:12px
 .mood button.on{border-color:var(--acc);box-shadow:inset 0 0 0 2px var(--acc)}
 .mini{display:flex;gap:6px;margin:6px 0 2px}.mini input{padding:8px 10px}.mini .btn{min-height:40px}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
+#lock{position:fixed;inset:0;z-index:50;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 24px calc(24px + env(safe-area-inset-bottom,0px));overflow:auto;text-align:center}
+#lock .dots{display:flex;gap:14px;margin:16px 0 8px}#lock .dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--acc)}#lock .dots i.on{background:var(--acc)}
+#lock .pad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;margin:12px 0}#lock .pad button{height:72px;border-radius:50%;background:var(--surf);color:var(--ink);font-size:26px;border:1px solid var(--line)}
+#lock .lnk{display:block;margin:4px auto;color:var(--acc)}
+.foot{text-align:center;color:var(--mute);font-size:12px;margin:24px 0 8px}
 </style>
 </head>
 <body>
@@ -192,13 +199,13 @@ function weeklyHtml(){
   return '<h2>This week</h2><div class="card" style="display:block;cursor:default;border-left-color:var(--acc)">'+weekSummary().slice(1).map(function(l){return '<p>'+esc(l)+'</p>'}).join("")+'</div><label for="wq">Questions or notes for my therapist or psychiatrist</label><textarea id="wq">'+esc(S.q)+'</textarea><div class="add"><button class="btn ghost" data-a="wcopy">Copy summary</button></div>'
 }
 function viewHist(){
-  var h='<h1>More</h1>'+weeklyHtml()+'<h2>Tags</h2>'+lst("T",S.tags)+'<h2>Coping options</h2>'+lst("C",S.cope)+'<h2>Backup</h2>';
+  var h='<h1>More</h1>'+weeklyHtml()+'<h2>Tags</h2>'+lst("T",S.tags)+'<h2>Coping options</h2>'+lst("C",S.cope)+lockHtml()+'<h2>Backup</h2>';
   h+='<p class="muted">Your journal is stored only on this device. Copy a backup now and then, and paste it back to restore.</p><div class="add"><button class="btn ghost" data-a="copy">Copy backup</button></div><label for="rs">Restore from backup</label><textarea id="rs" placeholder="Paste backup text here"></textarea><div class="add"><button class="btn" data-a="restore">Restore</button></div>';
   return h
 }
 function render(){
   var y=window.scrollY;
-  $("#app").innerHTML=(tab==="home"?viewHome():tab==="today"?viewToday():tab==="list"?viewList():viewHist())+
+  $("#app").innerHTML=(tab==="home"?viewHome():tab==="today"?viewToday():tab==="list"?viewList():viewHist())+(tab==="home"||tab==="hist"?foot():"")+
   '<nav class="tabs">'+[["home","Home"],["today","Journal"],["list","Checklist"],["hist","More"]].map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join("")+'</nav>';
   window.scrollTo(0,y)
 }
@@ -264,6 +271,8 @@ document.addEventListener("click",function(ev){
   else if(a==="newC"){addCope();return}
   else if(a==="mood"){var dd=t.dataset.d,mv=+id;if(S.mood[dd]===mv)delete S.mood[dd];else S.mood[dd]=mv;save()}
   else if(a==="delT"||a==="delC"){var kk=a+id;if(armed===kk){(a==="delT"?S.tags:S.cope).splice(+id,1);armed=null;save()}else armed=kk}
+  else if(a==="pinset"||a==="pinchg"){startSet();return}
+  else if(a==="pinoff"){if(armed==="pinoff"){dropPin();armed=null;toast("PIN turned off")}else armed="pinoff"}
   else if(a==="en"){var d3=t.dataset.d,n3=+id;S.sl[d3]=S.sl[d3]||{};if(S.sl[d3].en===n3)delete S.sl[d3].en;else S.sl[d3].en=n3;save()}
   else if(a==="safe"){sheet={safe:true};drawSheet();return}
   else if(a==="wcopy"){copyText(weekSummary().join("\n")+"\n\nQuestions for my appointment:\n"+S.q).then(function(){toast("Summary copied")},function(){toast("Copy isn’t available here")});return}
@@ -311,7 +320,55 @@ try{
   g.fillStyle="#415A77";g.fillRect(60,62,60,6);g.fillRect(60,82,60,6);g.fillRect(60,102,38,6);
   document.querySelector('link[rel="apple-touch-icon"]').href=c.toDataURL("image/png");
 }catch(e){}
+function foot(){return '<p class="foot">© 2026 jayvengozon™ · Daybook</p>'}
+function lockHtml(){var arm=armed==="pinoff";return '<h2>App lock</h2>'+(P?'<p class="muted">PIN is on. Daybook asks for it when you reopen the app after 30 seconds away.</p><div class="add"><button class="btn ghost" data-a="pinchg">Change PIN</button><button class="btn'+(arm?'':' ghost')+'" data-a="pinoff">'+(arm?'Tap again to turn off':'Turn off PIN')+'</button></div>':'<p class="muted">Protect your journal with a 4-digit PIN. It keeps casual snoopers out. It does not encrypt your data.</p><div class="add"><button class="btn" data-a="pinset">Set a 4-digit PIN</button></div>')}
+var P=null,PK="daybook1pin",TK="daybook1try",ent="",mode="",tmp="",lockMsg="",forgot=false,hideAt=0;
+try{P=JSON.parse(localStorage.getItem(PK))}catch(e){}
+if(P&&!P.h)P=null;
+function idbK(k,v){idb(function(db){var o=db.transaction("kv","readwrite").objectStore("kv");if(v==null)o.delete(k);else o.put(v,k)})}
+function savePin(){var j=JSON.stringify(P);try{localStorage.setItem(PK,j)}catch(e){}idbK(PK,j)}
+function dropPin(){P=null;try{localStorage.removeItem(PK)}catch(e){}idbK(PK,null)}
+function tries(){try{return JSON.parse(localStorage.getItem(TK))||{n:0,u:0}}catch(e){return{n:0,u:0}}}
+function setTries(t){try{localStorage.setItem(TK,JSON.stringify(t))}catch(e){}}
+function hp(pin,salt){var x=salt+":"+pin;if(window.crypto&&crypto.subtle&&window.TextEncoder){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(x)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(v){return("0"+v.toString(16)).slice(-2)}).join("")})}var h=5381;for(var i=0;i<x.length;i++)h=((h<<5)+h+x.charCodeAt(i))|0;return Promise.resolve(String(h))}
+function lockUI(){
+  var el=$("#lock");if(!el){el=document.createElement("div");el.id="lock";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");document.body.appendChild(el)}
+  var title=mode==="set1"?"Choose a 4-digit PIN":mode==="set2"?"Confirm your PIN":"Enter your PIN";
+  var t=tries(),wait=Math.ceil((t.u-Date.now())/1000),msg=lockMsg||(!mode&&wait>0?"Too many tries. Wait "+wait+" seconds.":"");
+  el.innerHTML='<div class="serif" style="font-size:28px">Daybook</div><p class="muted" style="margin:6px 0 0">'+title+'</p><div class="dots" aria-label="'+ent.length+' of 4 digits entered">'+[0,1,2,3].map(function(i){return '<i class="'+(i<ent.length?'on':'')+'"></i>'}).join("")+'</div><p class="muted" role="status" style="min-height:22px;margin:0">'+esc(msg)+'</p><div class="pad">'+[1,2,3,4,5,6,7,8,9].map(function(n){return '<button data-k="'+n+'" aria-label="'+n+'">'+n+'</button>'}).join("")+'<span></span><button data-k="0" aria-label="0">0</button><button data-k="x" aria-label="Delete digit">⌫</button></div>'+(mode?'<button class="lnk" data-k="cancel">Cancel</button>':'<a class="lnk" href="tel:1553" style="text-decoration:none">Need help now? Call NCMH 1553</a><button class="lnk" data-k="forgot">'+(forgot?'Tap again to erase all data and remove the PIN':'Forgot PIN?')+'</button>')+'<p class="foot">© 2026 jayvengozon™</p>'
+}
+function showLock(){if(!P)return;mode="";ent="";lockMsg="";forgot=false;lockUI()}
+function startSet(){mode="set1";ent="";tmp="";lockMsg="";lockUI()}
+function hideLock(){var el=$("#lock");if(el)el.remove();mode="";ent="";lockMsg=""}
+function pinDone(){
+  var q=ent;ent="";
+  if(mode==="set1"){tmp=q;mode="set2";lockUI();return}
+  if(mode==="set2"){if(q!==tmp){mode="set1";tmp="";lockMsg="The PINs didn’t match. Try again.";lockUI();return}var salt=Math.random().toString(36).slice(2)+Date.now().toString(36);hp(q,salt).then(function(h){P={h:h,s:salt};savePin();hideLock();toast("PIN saved");render()});return}
+  hp(q,P.s).then(function(h){
+    if(h===P.h){setTries({n:0,u:0});hideLock();return}
+    var t=tries();t.n++;
+    if(t.n>=5){t.u=Date.now()+60000;t.n=0;lockMsg="Too many tries. Wait 60 seconds."}else lockMsg="Wrong PIN. "+(5-t.n)+" tries left.";
+    setTries(t);lockUI()
+  })
+}
+document.addEventListener("click",function(ev){
+  var b=ev.target.closest&&ev.target.closest("[data-k]");if(!b||!$("#lock"))return;
+  var k=b.dataset.k;
+  if(k==="cancel"){hideLock();return}
+  if(k==="forgot"){if(!forgot){forgot=true;lockUI();return}try{localStorage.removeItem(K)}catch(e){}idbK(K,null);dropPin();setTries({n:0,u:0});location.reload();return}
+  if(k==="x"){ent=ent.slice(0,-1);lockMsg="";lockUI();return}
+  if(!mode&&tries().u>Date.now()){lockUI();return}
+  if(ent.length>=4)return;
+  ent+=k;lockMsg="";lockUI();
+  if(ent.length===4)setTimeout(pinDone,120)
+});
+document.addEventListener("visibilitychange",function(){
+  if(document.hidden){hideAt=Date.now()}
+  else if(P&&hideAt&&Date.now()-hideAt>30000&&!$("#lock")){showLock()}
+});
+if(!P){idb(function(db){var g=db.transaction("kv").objectStore("kv").get(PK);g.onsuccess=function(){try{var v=JSON.parse(g.result);if(v&&v.h){P=v;try{localStorage.setItem(PK,g.result)}catch(e){}showLock()}}catch(e){}}})}
 render();
+if(P)showLock();
 })();
 </script>
 </body>
