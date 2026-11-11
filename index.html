@@ -101,6 +101,10 @@ input,select,textarea{min-width:0;max-width:100%}
 input[type=date],input[type=time],input[type=number]{-webkit-appearance:none;appearance:none;display:block;min-height:46px;text-align:left}
 .add input,.mini input{flex:1 1 0;width:auto;min-width:0}
 .chips,.chip{max-width:100%}
+html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
+#app{height:100%;overflow-x:hidden;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch}
+.sheet,#guide,#lock{overscroll-behavior:none;-webkit-overflow-scrolling:touch}
+.sheet{overflow-x:hidden;overflow-y:auto}
 </style>
 </head>
 <body>
@@ -218,10 +222,10 @@ function viewHist(){
   return h
 }
 function render(){
-  var y=window.scrollY;
+  var y=$("#app").scrollTop;
   $("#app").innerHTML=(tab==="home"?viewHome():tab==="today"?viewToday():tab==="list"?viewList():viewHist())+(tab==="home"||tab==="hist"?foot():"")+
   '<nav class="tabs">'+[["home","Home"],["today","Journal"],["list","Checklist"],["hist","More"]].map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join("")+'</nav>';
-  window.scrollTo(0,y)
+  $("#app").scrollTop=y
 }
 function sel(l,n,v){var o='<option value="">–</option>';for(var i=0;i<=10;i++)o+='<option value="'+i+'"'+(String(v)===String(i)?' selected':'')+'>'+i+'</option>';return '<label for="f_'+n+'">'+l+'</label><select id="f_'+n+'" name="'+n+'">'+o+'</select>'}
 function fld(l,n,v,ph){return '<label for="f_'+n+'">'+l+'</label><input id="f_'+n+'" name="'+n+'" value="'+esc(v)+'" placeholder="'+(ph||"")+'" autocomplete="off">'}
@@ -552,6 +556,28 @@ document.addEventListener("visibilitychange",function(){
 if(!P){idb(function(db){var g=db.transaction("kv").objectStore("kv").get(PK);g.onsuccess=function(){try{var v=JSON.parse(g.result);if(v&&v.h){P=v;try{localStorage.setItem(PK,g.result)}catch(e){}showLock()}}catch(e){}}})}
 render();
 if(P)showLock();
+
+(function(){
+  var ly=0,lx=0;
+  function canScroll(el,dy){
+    var cs=getComputedStyle(el),oy=cs.overflowY;
+    if(oy!=="auto"&&oy!=="scroll")return false;
+    if(el.scrollHeight<=el.clientHeight+1)return false;
+    if(dy>0)return el.scrollTop>0;
+    if(dy<0)return el.scrollTop+el.clientHeight<el.scrollHeight-1;
+    return true
+  }
+  document.addEventListener("touchstart",function(e){if(e.touches.length===1){ly=e.touches[0].clientY;lx=e.touches[0].clientX}},{passive:true});
+  document.addEventListener("touchmove",function(e){
+    if(e.touches.length!==1)return;
+    var t=e.target;if(t.closest&&t.closest("input[type=range]"))return;
+    var y=e.touches[0].clientY,x=e.touches[0].clientX,dy=y-ly,dx=x-lx;ly=y;lx=x;
+    if(Math.abs(dx)>Math.abs(dy)){e.preventDefault();return}
+    var el=t;
+    while(el&&el!==document.documentElement){if(canScroll(el,dy))return;el=el.parentElement}
+    e.preventDefault()
+  },{passive:false});
+})();
 })();
 </script>
 </body>
