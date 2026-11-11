@@ -87,6 +87,8 @@ label{display:block;font-size:14px;font-weight:600;color:var(--mute);margin:12px
 #lock .pad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;margin:12px 0}#lock .pad button{height:72px;border-radius:50%;background:var(--surf);color:var(--ink);font-size:26px;border:1px solid var(--line)}
 #lock .lnk{display:block;margin:4px auto;color:var(--acc)}
 .foot{text-align:center;color:var(--mute);font-size:12px;margin:24px 0 8px}
+#guide{position:fixed;inset:0;z-index:40;background:var(--bg);color:var(--ink);overflow:auto;padding:calc(14px + env(safe-area-inset-top,0px)) 20px calc(28px + env(safe-area-inset-bottom,0px))}
+#guide .in{max-width:520px;margin:0 auto}#guide ol{padding-left:20px}#guide li{margin:10px 0}
 </style>
 </head>
 <body>
@@ -105,7 +107,7 @@ if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().cat
 if(fresh){idb(function(db){var g=db.transaction("kv").objectStore("kv").get(K);g.onsuccess=function(){try{var v=JSON.parse(g.result);if(v&&Array.isArray(v.e)){S=v;norm();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}render()}}catch(e){}}})}
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 function save(){var j=JSON.stringify(S);try{localStorage.setItem(K,j)}catch(e){toast("Couldn’t save on this device")}idbPut(j)}
-function norm(){if(!Array.isArray(S.dates))S.dates=[];if(!Array.isArray(S.tags))S.tags=["work","sleep","family","alone","health","money"];if(!Array.isArray(S.cope))S.cope=["Deep breathing","Went for a walk","Talked to someone","Listened to music","Rested","Wrote it down"];if(!S.mood||typeof S.mood!=="object")S.mood={};if(!S.safe||typeof S.safe!=="object")S.safe={signs:"",steps:"",people:"",reasons:""};if(!Array.isArray(S.safe.contacts))S.safe.contacts=[];if(!S.sl||typeof S.sl!=="object")S.sl={};if(typeof S.q!=="string")S.q=""}
+function norm(){if(!Array.isArray(S.dates))S.dates=[];if(!Array.isArray(S.tags))S.tags=["work","sleep","family","alone","health","money"];if(!Array.isArray(S.cope))S.cope=["Deep breathing","Went for a walk","Talked to someone","Listened to music","Rested","Wrote it down"];if(!S.mood||typeof S.mood!=="object")S.mood={};if(!S.safe||typeof S.safe!=="object")S.safe={signs:"",steps:"",people:"",reasons:""};if(!Array.isArray(S.safe.contacts))S.safe.contacts=[];if(!Array.isArray(S.safe.tools))S.safe.tools=defaultTools();if(!S.sl||typeof S.sl!=="object")S.sl={};if(typeof S.q!=="string")S.q=""}
 var $=function(s){return document.querySelector(s)};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
 var pad=function(n){return(n<10?"0":"")+n};
@@ -216,14 +218,29 @@ function openSheet(type,id){
   var x=id?S.e.filter(function(e){return e.id===id})[0]:null;
   sheet={type:x?x.type:type,id:id||null,x:Object.assign({},x||{})};sheet.x.tags=(sheet.x.tags||[]).slice();drawSheet()
 }
+var SFF=["signs","trig","away","steps","words","people","reasons","nxt","psy"];
+function areaP(l,n,v,ph){return '<label for="f_'+n+'">'+l+'</label><textarea id="f_'+n+'" name="'+n+'" placeholder="'+esc(ph)+'">'+esc(v||"")+'</textarea>'}
+function dtF(l,n,v){return '<label for="f_'+n+'">'+l+'</label><input id="f_'+n+'" name="'+n+'" type="date" value="'+esc(v||"")+'">'}
+function defaultTools(){return [
+ {t:"Box breathing",b:"Breathe in through your nose for 4, hold for 4, breathe out through your mouth for 4, hold for 4. Picture drawing a square as you go."},
+ {t:"Progressive muscle relaxation",b:"Tense then release each muscle group, holding 5 to 10 seconds: hands and forearms, upper arms, forehead, shoulders, stomach, legs and feet."},
+ {t:"Sensory grounding",b:"Identify 5 things you can see, 4 you can hear, 3 you can touch, 2 you can smell, and 1 you can taste."},
+ {t:"STOP technique",b:"Stop. Take a break. Observe what is going on inside you and around you. Proceed carefully with the best choice."},
+ {t:"When irritation builds while caring for the baby",b:"Pause and take a slow breath. If it is getting hard to manage, place your baby safely in the playpen, step away briefly, and use grounding until you feel calmer before returning to caregiving."}]}
+function toolkit(){
+  var T=S.safe.tools,have=T.map(function(x){return x.t}),miss=defaultTools().map(function(x,i){return have.indexOf(x.t)<0?'<option value="lib:'+i+'">'+esc(x.t)+'</option>':''}).join("");
+  return '<h2>Calm-down toolkit</h2><p class="muted" style="margin-top:0">Tap a technique to open its guide. Add your own or remove the ones that don’t help.</p>'
+   +(T.length?T.map(function(x,i){var arm=armed==="tkdel"+i;return '<div style="display:flex;gap:8px;margin:6px 0"><button type="button" class="btn ghost" style="flex:1;text-align:left;min-height:48px" data-a="tkopen" data-id="'+i+'">'+esc(x.t)+' ›</button><button type="button" class="x'+(arm?' arm':'')+'" data-a="tkdel" data-id="'+i+'" aria-label="Remove '+esc(x.t)+'">'+(arm?'Remove?':'✕')+'</button></div>'}).join(""):'<p class="muted">Your toolkit is empty.</p>')
+   +'<label for="tsel">Add a technique</label><select id="tsel"><option value="">Choose one…</option>'+miss+'<option value="custom">Create my own…</option></select><div id="tcustom" style="display:none"><label for="tn">Name</label><input id="tn" placeholder="For example: Walk around the block" autocomplete="off"><label for="tb">Steps (optional)</label><textarea id="tb" placeholder="What I do, step by step"></textarea></div><div class="acts"><button type="button" class="btn" data-a="tkadd">Add</button></div>'
+}
 function telN(p){return String(p).replace(/[^\d+]/g,"")}
-function sfGrab(){var f=$("#sf");if(f)["signs","steps","people","reasons"].forEach(function(n){S.safe[n]=f.elements[n].value})}
+function sfGrab(){var f=$("#sf");if(f)["signs","trig","away","steps","words","people","reasons","nxt","psy"].forEach(function(n){S.safe[n]=f.elements[n].value})}
 function sfContacts(){
   var c=S.safe.contacts;
   return '<h2>People I can call</h2>'+(c.length?c.map(function(x,i){var arm=armed==="sfdel"+i;return '<div style="display:flex;gap:8px;margin:6px 0"><a class="btn" style="flex:1;display:block;text-align:center;line-height:44px;text-decoration:none" href="tel:'+esc(telN(x.p))+'">Call '+esc(x.n)+'</a><button type="button" class="x'+(arm?' arm':'')+'" data-a="sfdel" data-id="'+i+'" aria-label="Remove '+esc(x.n)+'">'+(arm?'Remove?':'✕')+'</button></div>'}).join(""):'<p class="muted">No contacts yet. Add a name and number below.</p>')+'<div class="mini"><input id="cn" placeholder="Name" aria-label="Contact name" autocomplete="off"><input id="cp" type="tel" inputmode="tel" placeholder="Number" aria-label="Contact number" autocomplete="off"><button type="button" class="btn ghost" data-a="sfadd">Add</button></div>'
 }
 function drawSheet(){
-  if(sheet.safe){var sf=S.safe;$("#sheetHost").innerHTML='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Safety plan"><h2 style="margin-top:0">My safety plan</h2><p class="muted">Fill this in with your therapist or psychiatrist when you can. Open it whenever thoughts of self-harm come up.</p><div class="acts" style="margin-top:8px"><a class="btn" style="display:grid;place-items:center;text-decoration:none" href="tel:1553">Call NCMH 1553</a><a class="btn ghost" style="display:grid;place-items:center;text-decoration:none" href="tel:911">Call 911</a></div><p class="muted">NCMH also: 0917-899-8727. Please check that these numbers are still current.</p><p class="muted" style="margin-bottom:0">Tap a name to call that person.</p>'+sfContacts()+'<form id="sf">'+area("My warning signs","signs",sf.signs)+area("Things I can do on my own","steps",sf.steps)+area("Notes on who can be with me or help","people",sf.people)+area("Why staying safe matters to me","reasons",sf.reasons)+'<div class="acts"><button type="button" class="btn ghost" data-a="shut2">Close</button><button class="btn">Save</button></div></form></div></div>';return}
+  if(sheet.safe){var sf=S.safe,old=$("#sheetHost .sheet"),st=old?old.scrollTop:0;$("#sheetHost").innerHTML='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Safety plan"><h2 style="margin-top:0">My safety plan</h2><p class="muted">Fill this in with your therapist or psychiatrist when you can. Open it whenever thoughts of self-harm come up.</p><div class="acts" style="margin-top:8px"><a class="btn" style="display:grid;place-items:center;text-decoration:none" href="tel:1553">Call NCMH 1553</a><a class="btn ghost" style="display:grid;place-items:center;text-decoration:none" href="tel:911">Call 911</a></div><p class="muted">NCMH also: 0917-899-8727. Please check that these numbers are still current.</p><p class="muted" style="margin-bottom:0">Tap a name to call that person.</p>'+sfContacts()+toolkit()+'<form id="sf">'+area("My warning signs","signs",sf.signs)+areaP("What sets off my irritation or panic","trig",sf.trig,"For example: feeling overwhelmed, a tense talk with my wife, work pressure")+areaP("When it is building: my step-away plan","away",sf.away,"Pause, STOP technique, make my baby safe, step away briefly, ground myself, then return")+area("Things I can do on my own","steps",sf.steps)+areaP("What I can say to my wife when I am overwhelmed","words",sf.words,"I need a short break and I will come back to talk calmly")+area("Notes on who can be with me or help","people",sf.people)+area("Why staying safe matters to me","reasons",sf.reasons)+dtF("Next therapy session","nxt",sf.nxt)+dtF("Psychiatric consultation","psy",sf.psy)+'<div class="acts"><button type="button" class="btn ghost" data-a="shut2">Close</button><button class="btn">Save</button></div></form></div></div>';var nw=$("#sheetHost .sheet");if(nw)nw.scrollTop=st;return}
   if(sheet.pick){$("#sheetHost").innerHTML='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Pick a date"><form id="pf"><label for="f_pd">Pick a date</label><input type="date" id="f_pd" name="pd" value="'+today+'"><div class="acts"><button type="button" class="btn ghost" data-a="shut2">Cancel</button><button class="btn">Add date</button></div></form></div></div>';return}var s=sheet,x=s.x,e=s.type==="emotion";
   var h='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Entry"><div class="seg">'+(s.id?'':'<button data-a="seg" data-id="emotion" class="'+(e?'on':'')+'">Emotion</button><button data-a="seg" data-id="activity" class="'+(!e?'on':'')+'">Activity</button>')+(s.id?'<button class="on" disabled>'+(e?'Emotion':'Activity')+'</button>':'')+'</div><form id="ef">';
   if(e){
@@ -277,6 +294,13 @@ document.addEventListener("click",function(ev){
   else if(a==="newC"){addCope();return}
   else if(a==="mood"){var dd=t.dataset.d,mv=+id;if(S.mood[dd]===mv)delete S.mood[dd];else S.mood[dd]=mv;save()}
   else if(a==="delT"||a==="delC"){var kk=a+id;if(armed===kk){(a==="delT"?S.tags:S.cope).splice(+id,1);armed=null;save()}else armed=kk}
+  else if(a==="tkopen"){sfGrab();openGuide(+id);return}
+  else if(a==="tkadd"){sfGrab();var tv=$("#tsel").value;if(!tv){toast("Choose a technique first");return}
+    if(tv==="custom"){var tn=$("#tn").value.trim();if(!tn){toast("Enter a name for your technique");return}S.safe.tools.push({t:tn,b:$("#tb").value.trim()})}
+    else{var L=defaultTools()[+tv.slice(4)];if(L&&S.safe.tools.every(function(x){return x.t!==L.t}))S.safe.tools.push(L)}
+    save();drawSheet();toast("Added");return}
+  else if(a==="tkdel"){sfGrab();var ti=+id;if(armed==="tkdel"+ti){S.safe.tools.splice(ti,1);armed=null;save()}else armed="tkdel"+ti;drawSheet();return}
+  else if(a==="tkreset"){sfGrab();var have=S.safe.tools.map(function(x){return x.t}),add=defaultTools().filter(function(x){return have.indexOf(x.t)<0});S.safe.tools=S.safe.tools.concat(add);save();drawSheet();toast(add.length?"Originals restored":"All originals are already there");return}
   else if(a==="sfadd"){sfGrab();var cn=$("#cn").value.trim(),cp=telN($("#cp").value);if(!cn||cp.replace(/\D/g,"").length<3){toast("Enter a name and a valid number");return}S.safe.contacts.push({n:cn,p:cp});save();drawSheet();return}
   else if(a==="sfdel"){sfGrab();var ci=+id;if(armed==="sfdel"+ci){S.safe.contacts.splice(ci,1);armed=null;save()}else armed="sfdel"+ci;drawSheet();return}
   else if(a==="pinset"||a==="pinchg"){startSet();return}
@@ -304,11 +328,12 @@ document.addEventListener("change",function(ev){
   var t=ev.target;
   if(t.id==="sh"){var d=t.dataset.d,v=t.value.trim();S.sl[d]=S.sl[d]||{};if(v)S.sl[d].h=v;else delete S.sl[d].h;save()}
   else if(t.id==="wq"){S.q=t.value;save()}
+  else if(t.id==="tsel"){var cu=$("#tcustom");if(cu)cu.style.display=t.value==="custom"?"block":"none"}
 });
 document.addEventListener("submit",function(ev){
   ev.preventDefault();var f=ev.target;
   if(f.id==="ef"){var ae=document.activeElement;if(ae&&(ae.id==="nt"||ae.id==="nc")){if(ae.id==="nt")addTag();else addCope();return}saveEntry(f);return}
-  if(f.id==="sf"){["signs","steps","people","reasons"].forEach(function(n){S.safe[n]=f.elements[n].value});save();closeSheet();render();toast("Safety plan saved");return}
+  if(f.id==="sf"){["signs","trig","away","steps","words","people","reasons","nxt","psy"].forEach(function(n){S.safe[n]=f.elements[n].value});save();closeSheet();render();toast("Safety plan saved");return}
   if(f.id==="pf"){var pd=f.elements.pd.value;if(!pd){toast("Pick a date first");return}if(S.dates.indexOf(pd)<0)S.dates.push(pd);cur=pd;tab="today";save();closeSheet();render();return}
   var kind=f.dataset.f,v=f.elements.t.value.trim();if(!v)return;
   if(kind==="m")S.m.push({id:uid(),text:v,from:cur});
@@ -328,6 +353,144 @@ try{
   g.fillStyle="#415A77";g.fillRect(60,62,60,6);g.fillRect(60,82,60,6);g.fillRect(60,102,38,6);
   document.querySelector('link[rel="apple-touch-icon"]').href=c.toDataURL("image/png");
 }catch(e){}
+var gT=null,gStart=0,gWake=null,gLast="";
+var GC=["#d4a24c","#d98a8a","#8fc3c9","#5b9aa0"],GP=[[20,20],[220,20],[220,220],[20,220],[20,20]];
+var GN=["Breathe in","Hold","Breathe out","Hold"],GH=["Slowly and deeply through your nose","Hold your breath","Slowly through your mouth","Hold your breath"],GV=["first","second","third","fourth"];
+function stopBox(){clearInterval(gT);gT=null;gLast="";try{if(gWake){gWake.release();gWake=null}}catch(e){}}
+function boxPaint(f){
+  var t=f?(Date.now()-gStart)/1000:0,ph=Math.floor((t%16)/4),fr=((t%16)%4)/4,i,a,b,x,y;
+  for(i=0;i<4;i++){a=GP[i];b=GP[i+1];var k=i<ph?1:i===ph?fr:0;if(!f)k=0;var l=$("#l"+i);if(l){l.setAttribute("x2",a[0]+(b[0]-a[0])*k);l.setAttribute("y2",a[1]+(b[1]-a[1])*k)}}
+  a=GP[ph];b=GP[ph+1];x=a[0]+(b[0]-a[0])*fr;y=a[1]+(b[1]-a[1])*fr;
+  var d=$("#bd");if(d){d.setAttribute("cx",f?x:20);d.setAttribute("cy",f?y:20)}
+  if(!f)return;
+  var key=ph+"-"+Math.floor(fr*4);
+  if(key!==gLast){gLast=key;var n=$("#bp"),c=$("#bc"),h=$("#bs"),r=$("#br");if(n)n.textContent=GN[ph];if(c)c.textContent=Math.floor(fr*4)+1;if(h)h.textContent=GH[ph]+". Picture drawing the "+GV[ph]+" side of the square.";if(r)r.textContent="Round "+(Math.floor(t/16)+1)}
+}
+function boxGo(){
+  var b=$("#bgo");
+  if(gT){stopBox();boxPaint(false);$("#bp").textContent="Ready";$("#bc").textContent="";$("#bs").textContent="";$("#br").textContent="";b.textContent="Start";return}
+  gStart=Date.now();gLast="";b.textContent="Stop";
+  try{if(navigator.wakeLock)navigator.wakeLock.request("screen").then(function(w){gWake=w}).catch(function(){})}catch(e){}
+  boxPaint(true);gT=setInterval(function(){boxPaint(true)},80)
+}
+var gHold=7,gI=0,gPh="",gT0=0;
+var PG=[{n:"Hands and forearms",t:"Clench your fists.",r:"Release the tension."},{n:"Upper arms",t:"Flex your biceps.",r:"Let your arms drop."},{n:"Forehead",t:"Raise your eyebrows high.",r:"Let them drop back."},{n:"Shoulders",t:"Shrug them up to your ears.",r:"Drop them down."},{n:"Stomach",t:"Tighten your abs.",r:"Let it soften."},{n:"Legs and feet",t:"Point your toes and tighten your calves.",r:"Release and relax."}];
+function pmrHtml(tl){
+  return '<h1 class="serif" style="margin:6px 0 4px">'+esc(tl.t)+'</h1><p class="muted" style="margin:0">Quick Relaxation Boost. You tense one muscle group at a time, then let it go, and notice the difference.</p>'
+   +'<p class="muted" style="margin:14px 0 4px">Hold each squeeze for</p><div style="display:flex;gap:8px">'+[5,7,10].map(function(v){return '<button type="button" class="btn'+(v===gHold?'':' ghost')+'" data-g="hold" data-v="'+v+'" style="flex:1">'+v+' sec</button>'}).join("")+'</div>'
+   +'<div style="background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:20px 16px;margin:16px 0;text-align:center"><div id="pa" class="muted" style="min-height:22px">Ready</div><div id="pt" class="serif" style="font-size:26px;min-height:34px" role="status" aria-live="polite">Get comfortable</div><div id="pi" style="font-size:18px;min-height:50px;margin:6px 0">Choose a peaceful spot. Sit or lie down comfortably, loosen any tight clothes, and breathe deeply. Then tap Start.</div><div id="pc" style="font-size:48px;font-weight:700;min-height:58px"></div><div style="height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin:6px 0 14px"><i id="pbar" style="display:block;height:100%;width:0;background:var(--acc)"></i></div><div class="acts" style="margin-top:0"><button id="pgo" class="btn" data-g="pgo">Start</button><button id="pskip" class="btn ghost" data-g="pskip">Skip area</button></div></div>'
+   +'<h2>The six areas</h2><ol>'+PG.map(function(g){return '<li><b>'+g.n+'.</b> Tense: '+g.t.charAt(0).toLowerCase()+g.t.slice(1)+' Hold 5 to 10 seconds. Relax: '+g.r.charAt(0).toLowerCase()+g.r.slice(1)+'</li>'}).join("")+'</ol>'
+   +'<p class="muted">After the last area, lie or sit quietly, take deep breaths, and enjoy the feeling of relaxation.</p>'
+   +'<p class="muted">Squeeze firmly but not painfully, and keep breathing. Skip any area that hurts or is injured.</p>'
+   +'<p class="muted">From the Quick Relaxation Boost handout of your session at Kamalayan Psychological Services.</p>'
+}
+function pmrDur(){return gPh==="scene"?10:gPh==="tense"?gHold:gPh==="relax"?10:0}
+function pmrPaint(){
+  var el=(Date.now()-gT0)/1000,d=pmrDur(),g=PG[gI],A=$("#pa"),T=$("#pt"),I=$("#pi"),C=$("#pc"),B=$("#pbar");if(!A)return;
+  var key=gPh+gI;
+  if(key!==gLast){gLast=key;
+    if(gPh==="scene"){A.textContent="Get comfortable";T.textContent="Settle in";I.textContent="Sit or lie down comfortably, loosen any tight clothes, and breathe deeply."}
+    else if(gPh==="end"){A.textContent="All six areas done";T.textContent="Enjoy the calm";I.textContent="Lie or sit quietly, take deep breaths, and enjoy the feeling of relaxation."}
+    else{A.textContent="Area "+(gI+1)+" of 6";T.textContent=g.n+(gPh==="tense"?": tense":": relax");I.textContent=gPh==="tense"?g.t+" Hold it.":g.r+" Notice the difference."}
+  }
+  if(gPh==="end"){C.textContent="";B.style.width="100%";return}
+  C.textContent=Math.max(1,Math.ceil(d-el));B.style.width=Math.min(100,100*el/d)+"%"
+}
+function pmrAdv(){
+  if(gPh==="scene"){gI=0;gPh="tense"}
+  else if(gPh==="tense"){gPh="relax"}
+  else if(gPh==="relax"){if(gI>=5)gPh="end";else{gI++;gPh="tense"}}
+  gT0=Date.now()
+}
+function pmrTick(){
+  if(gPh!=="end"&&(Date.now()-gT0)/1000>=pmrDur())pmrAdv();
+  pmrPaint();
+  if(gPh==="end"){clearInterval(gT);gT=null;try{if(gWake){gWake.release();gWake=null}}catch(e){}var b=$("#pgo");if(b)b.textContent="Start again"}
+}
+function pmrGo(){
+  var b=$("#pgo");
+  if(gT){stopBox();gPh="";gLast="";b.textContent="Start";$("#pa").textContent="Ready";$("#pt").textContent="Get comfortable";$("#pi").textContent="Choose a peaceful spot. Sit or lie down comfortably, loosen any tight clothes, and breathe deeply. Then tap Start.";$("#pc").textContent="";$("#pbar").style.width="0";return}
+  stopBox();gI=0;gPh="scene";gT0=Date.now();gLast="";b.textContent="Stop";
+  try{if(navigator.wakeLock)navigator.wakeLock.request("screen").then(function(w){gWake=w}).catch(function(){})}catch(e){}
+  pmrPaint();gT=setInterval(pmrTick,200)
+}
+function pmrSkip(){
+  if(!gT||gPh==="end")return;
+  if(gPh==="scene"){gI=0;gPh="tense"}else if(gI>=5){gPh="end"}else{gI++;gPh="tense"}
+  gT0=Date.now();pmrTick()
+}
+function pmrHold(b){
+  if(gT)return;gHold=+b.dataset.v;
+  var all=document.querySelectorAll('[data-g="hold"]');for(var i=0;i<all.length;i++)all[i].className="btn"+(all[i]===b?"":" ghost")
+}
+var gS=0,gC=0;
+var NW=["","one","two","three","four","five"];
+var SG=[{n:"Sight",c:5,v:"see",col:"#8fc3c9",e:"👁️"},{n:"Sound",c:4,v:"hear",col:"#f0cf92",e:"👂"},{n:"Touch",c:3,v:"touch",col:"#d9857f",e:"✋"},{n:"Smell",c:2,v:"smell",col:"#6fa3a8",e:"👃"},{n:"Taste",c:1,v:"taste",col:"#d09a3a",e:"👅"}];
+function sgStage(){
+  if(gS>=5)return '<div style="text-align:center;padding:16px 0"><div class="serif" style="font-size:26px">You are here, in the present</div><p class="muted">Take one slow breath. Notice that your mind has come back to this moment.</p><button class="btn" data-g="sr" style="min-width:170px">Start again</button></div>';
+  var x=SG[gS],dots="",i,done=gC>=x.c;
+  for(i=0;i<x.c;i++)dots+='<span style="width:20px;height:20px;border-radius:50%;border:2px solid '+x.col+';background:'+(i<gC?x.col:'transparent')+';display:inline-block"></span>';
+  return '<div style="text-align:center"><p class="muted" style="margin:0">Step '+(gS+1)+' of 5</p><div style="width:84px;height:84px;border-radius:50%;background:'+x.col+';display:grid;place-items:center;font-size:40px;margin:10px auto">'+x.e+'</div><div class="serif" style="font-size:28px">'+x.n+'</div><p style="font-size:18px;margin:6px 0 12px">Identify '+NW[x.c]+(x.c===1?' thing':' things')+' you can '+x.v+'.</p><div style="display:flex;gap:10px;justify-content:center;margin:8px 0 16px">'+dots+'</div>'
+   +(done?'<p class="muted" style="margin:0 0 12px">That’s all '+NW[x.c]+'. Well done.</p>':'<button class="btn" data-g="sf" style="min-width:190px;margin-bottom:12px">I found one</button>')
+   +'<div class="acts" style="margin-top:4px">'+(gS>0?'<button class="btn ghost" data-g="sp">‹ Previous</button>':'')+'<button class="btn'+(done?'':' ghost')+'" data-g="sn">'+(done?(gS===4?'Finish':'Next sense ›'):'Skip ›')+'</button></div></div>'
+}
+function sgHtml(tl){
+  gS=0;gC=0;
+  return '<h1 class="serif" style="margin:6px 0 4px">'+esc(tl.t)+'</h1><p class="muted" style="margin:0">When emotions run high, it is harder to think clearly. This method helps you regain calm and focus on the present through your senses.</p>'
+   +'<div id="stage" aria-live="polite" style="background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:20px 14px;margin:16px 0">'+sgStage()+'</div>'
+   +'<h2>The five senses</h2><ol><li><b>Sight.</b> Identify five things you can see.</li><li><b>Sound.</b> Identify four things you can hear.</li><li><b>Touch.</b> Identify three things you can touch.</li><li><b>Smell.</b> Identify two things you can smell.</li><li><b>Taste.</b> Identify one thing you can taste.</li></ol>'
+   +'<p class="muted">From the Grounding handout of your session at Kamalayan Psychological Services.</p>'
+}
+function sgDraw(){var e=$("#stage");if(e)e.innerHTML=sgStage()}
+var ST=[{l:"S",n:"Stop!",d:"If you feel your emotions getting too big, take a moment to stop and pause."},{l:"T",n:"Take a break",d:"Relax and think. Step back from what’s happening. It’s okay to take your time."},{l:"O",n:"Observe",d:"Look around and notice what’s going on. Think about how you feel inside and what’s happening outside."},{l:"P",n:"Proceed",d:"Move forward carefully. Ask yourself: “What’s the best thing to do?” “What can help or hurt in this situation?” “What’s the best choice?”"}];
+function stStage(){
+  if(gS>=4)return '<div style="text-align:center;padding:12px 0"><div class="serif" style="font-size:26px">Well done</div><p style="font-size:17px">Next time you feel upset, remember to STOP and use these steps to stay cool and make good choices.</p><button class="btn" data-g="tr" style="min-width:170px">Start again</button></div>';
+  var x=ST[gS],dots="",i;
+  for(i=0;i<4;i++)dots+='<span style="width:12px;height:12px;border-radius:50%;background:'+(i<=gS?'#e0453a':'var(--line)')+';display:inline-block"></span>';
+  return '<div style="text-align:center"><div style="display:flex;gap:8px;justify-content:center">'+dots+'</div><div style="font-size:96px;font-weight:800;line-height:1.1;color:#e0453a;margin:8px 0 0">'+x.l+'</div><div class="serif" style="font-size:26px">'+x.n+'</div><p style="font-size:18px;margin:8px 0 16px">'+esc(x.d)+'</p><div class="acts" style="margin-top:4px">'+(gS>0?'<button class="btn ghost" data-g="tp">‹ Previous</button>':'')+'<button class="btn" data-g="tn">'+(gS===3?'Finish':'Next ›')+'</button></div></div>'
+}
+function stHtml(tl){
+  gS=0;gC=0;
+  return '<h1 class="serif" style="margin:6px 0 4px">'+esc(tl.t)+'</h1><p class="muted" style="margin:0">The STOP method helps you take a break when your emotions are strong. It gives you time to think before you act.</p>'
+   +'<div id="stage" aria-live="polite" style="background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:20px 14px;margin:16px 0">'+stStage()+'</div>'
+   +'<h2>The four steps</h2><ol>'+ST.map(function(x){return '<li><b>'+x.l+': '+x.n+'</b> '+esc(x.d)+'</li>'}).join("")+'</ol>'
+   +'<p class="muted">From the STOP handout of your session at Kamalayan Psychological Services.</p>'
+}
+function stDraw(){var e=$("#stage");if(e)e.innerHTML=stStage()}
+function closeGuide(){stopBox();var g=$("#guide");if(g)g.remove()}
+function openGuide(i){
+  var tl=S.safe.tools[i];if(!tl)return;closeGuide();
+  var g=document.createElement("div");g.id="guide";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");
+  var box=/box breathing|square breathing/i.test(tl.t),h='<div class="in"><button class="lnk" data-g="back" style="margin:0;padding:8px 0">‹ Back</button>';
+  if(box){
+    h+='<h1 class="serif" style="margin:6px 0 4px">'+esc(tl.t)+'</h1><p class="muted" style="margin:0">Also called square breathing. A simple way to ease stress and relax your body.</p>'
+     +'<svg viewBox="0 0 240 240" style="width:min(72vw,280px);display:block;margin:14px auto" aria-hidden="true"><rect x="20" y="20" width="200" height="200" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 5"/>'
+     +[0,1,2,3].map(function(k){return '<line id="l'+k+'" x1="'+GP[k][0]+'" y1="'+GP[k][1]+'" x2="'+GP[k][0]+'" y2="'+GP[k][1]+'" stroke="'+GC[k]+'" stroke-width="7" stroke-linecap="round"/>'}).join("")
+     +'<circle id="bd" cx="20" cy="20" r="9" fill="var(--ink)"/></svg>'
+     +'<div style="text-align:center"><div id="bp" class="serif" style="font-size:26px" role="status" aria-live="polite">Ready</div><div id="bc" style="font-size:46px;font-weight:700;min-height:58px"></div><p id="bs" class="muted" style="min-height:44px;margin:0"></p><p id="br" class="muted" style="min-height:22px;margin:0 0 8px"></p><button id="bgo" class="btn" data-g="go" style="min-width:170px">Start</button></div>'
+     +'<h2>The four steps</h2><ol><li><b>Inhale.</b> Breathe in slowly and deeply through your nose for a count of 4. Picture drawing the first side of a square.</li><li><b>Hold.</b> Hold your breath for a count of 4. Draw the second side.</li><li><b>Exhale.</b> Breathe out slowly through your mouth for a count of 4. Draw the third side.</li><li><b>Hold.</b> Hold your breath for a count of 4. Draw the fourth side.</li></ol>'
+     +'<p class="muted">Repeat for about 2 minutes. If you feel dizzy or lightheaded, stop and breathe normally. Practicing when you are calm makes it easier to use when you are stressed.</p>'
+     +'<p class="muted">From the Square Breathing Exercise handout of your session at Kamalayan Psychological Services.</p>'
+  }else if(/grounding/i.test(tl.t)){h+=sgHtml(tl)
+  }else if(/^stop\b/i.test(tl.t)){h+=stHtml(tl)
+  }else if(/progressive muscle|pmr/i.test(tl.t)){h+=pmrHtml(tl)
+  }else{
+    var isDef=defaultTools().some(function(d){return d.t===tl.t});
+    h+='<h1 class="serif" style="margin:6px 0 8px">'+esc(tl.t)+'</h1><p style="white-space:pre-wrap">'+esc(tl.b||"No steps written yet.")+'</p>'
+  }
+  g.innerHTML=h+'<p class="foot">© 2026 jayvengozon™</p></div>';document.body.appendChild(g);g.scrollTop=0
+}
+document.addEventListener("click",function(ev){
+  var b=ev.target.closest&&ev.target.closest("[data-g]");if(!b)return;
+  if(b.dataset.g==="back")closeGuide();else if(b.dataset.g==="go")boxGo();else if(b.dataset.g==="pgo")pmrGo();else if(b.dataset.g==="pskip")pmrSkip();else if(b.dataset.g==="hold")pmrHold(b)
+  else if(b.dataset.g==="sf"){gC++;sgDraw()}
+  else if(b.dataset.g==="sn"){gS++;gC=0;sgDraw()}
+  else if(b.dataset.g==="sp"){gS=Math.max(0,gS-1);gC=0;sgDraw()}
+  else if(b.dataset.g==="sr"){gS=0;gC=0;sgDraw()}
+  else if(b.dataset.g==="tn"){gS++;stDraw()}
+  else if(b.dataset.g==="tp"){gS=Math.max(0,gS-1);stDraw()}
+  else if(b.dataset.g==="tr"){gS=0;stDraw()}
+});
 function foot(){return '<p class="foot">© 2026 jayvengozon™ · Daybook</p>'}
 function lockHtml(){var arm=armed==="pinoff";return '<h2>App lock</h2>'+(P?'<p class="muted">PIN is on. Daybook asks for it when you reopen the app after 30 seconds away.</p><div class="add"><button class="btn ghost" data-a="pinchg">Change PIN</button><button class="btn'+(arm?'':' ghost')+'" data-a="pinoff">'+(arm?'Tap again to turn off':'Turn off PIN')+'</button></div>':'<p class="muted">Protect your journal with a 4-digit PIN. It keeps casual snoopers out. It does not encrypt your data.</p><div class="add"><button class="btn" data-a="pinset">Set a 4-digit PIN</button></div>')}
 var P=null,PK="daybook1pin",TK="daybook1try",ent="",mode="",tmp="",lockMsg="",forgot=false,hideAt=0;
