@@ -105,6 +105,16 @@ html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;overscro
 #app{height:100%;overflow-x:hidden;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch}
 .sheet,#guide,#lock{overscroll-behavior:none;-webkit-overflow-scrolling:touch}
 .sheet{overflow-x:hidden;overflow-y:auto}
+.pg{position:fixed;inset:0;z-index:20;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+.pgh{flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:1px solid var(--line);background:var(--bg)}
+.pgh .bk{justify-self:start;margin:0;padding:10px 4px;font-weight:600;color:var(--acc)}
+.pgt{font-size:18px;text-align:center}
+.pgsub{flex:none;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--bg)}
+.pgsub .seg{margin:0}
+.pgb{flex:1 1 auto;min-height:0;width:100%;max-width:560px;margin:0 auto;padding:16px 16px 28px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch}
+.pgf{flex:none;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--bg)}
+.pgf .acts{max-width:560px;margin:0 auto}
+#guide.pg{padding:0;overflow:hidden;z-index:40}
 </style>
 </head>
 <body>
@@ -255,10 +265,11 @@ function sfContacts(){
   var c=S.safe.contacts;
   return '<h2>People I can call</h2>'+(c.length?c.map(function(x,i){var arm=armed==="sfdel"+i;return '<div style="display:flex;gap:8px;margin:6px 0"><a class="btn" style="flex:1;display:block;text-align:center;line-height:44px;text-decoration:none" href="tel:'+esc(telN(x.p))+'">Call '+esc(x.n)+'</a><button type="button" class="x'+(arm?' arm':'')+'" data-a="sfdel" data-id="'+i+'" aria-label="Remove '+esc(x.n)+'">'+(arm?'Remove?':'✕')+'</button></div>'}).join(""):'<p class="muted">No contacts yet. Add a name and number below.</p>')+'<div class="mini"><input id="cn" placeholder="Name" aria-label="Contact name" autocomplete="off"><input id="cp" type="tel" inputmode="tel" placeholder="Number" aria-label="Contact number" autocomplete="off"><button type="button" class="btn ghost" data-a="sfadd">Add</button></div>'
 }
+function pgOpen(title,back,sub){return '<div class="pg" role="dialog" aria-label="'+esc(title)+'"><div class="pgh"><button type="button" class="lnk bk" '+back+'>‹ Back</button><div class="serif pgt">'+esc(title)+'</div><span></span></div>'+(sub?'<div class="pgsub">'+sub+'</div>':'')+'<div class="pgb">'}
 function drawSheet(){
-  if(sheet.safe){var sf=S.safe,old=$("#sheetHost .sheet"),st=old?old.scrollTop:0;$("#sheetHost").innerHTML='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Safety plan"><h2 style="margin-top:0">My safety plan</h2><p class="muted">Fill this in with your therapist or psychiatrist when you can. Open it whenever thoughts of self-harm come up.</p><div class="acts" style="margin-top:8px"><a class="btn" style="display:grid;place-items:center;text-decoration:none" href="tel:1553">Call NCMH 1553</a><a class="btn ghost" style="display:grid;place-items:center;text-decoration:none" href="tel:911">Call 911</a></div><p class="muted">NCMH also: 0917-899-8727. Please check that these numbers are still current.</p><p class="muted" style="margin-bottom:0">Tap a name to call that person.</p>'+sfContacts()+toolkit()+'<form id="sf">'+area("My warning signs","signs",sf.signs)+areaP("What sets off my irritation or panic","trig",sf.trig,"For example: feeling overwhelmed, a tense talk with my wife, work pressure")+areaP("When it is building: my step-away plan","away",sf.away,"Pause, STOP technique, make my baby safe, step away briefly, ground myself, then return")+area("Things I can do on my own","steps",sf.steps)+areaP("What I can say to my wife when I am overwhelmed","words",sf.words,"I need a short break and I will come back to talk calmly")+area("Notes on who can be with me or help","people",sf.people)+area("Why staying safe matters to me","reasons",sf.reasons)+dtF("Next therapy session","nxt",sf.nxt)+dtF("Psychiatric consultation","psy",sf.psy)+'<div class="acts fix"><button type="button" class="btn ghost" data-a="shut2">Close</button><button class="btn">Save</button></div></form></div></div>';var nw=$("#sheetHost .sheet");if(nw)nw.scrollTop=st;return}
-  if(sheet.pick){$("#sheetHost").innerHTML='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Pick a date"><form id="pf"><label for="f_pd">Pick a date</label><input type="date" id="f_pd" name="pd" value="'+today+'"><div class="acts"><button type="button" class="btn ghost" data-a="shut2">Cancel</button><button class="btn">Add date</button></div></form></div></div>';return}var s=sheet,x=s.x,e=s.type==="emotion";
-  var h='<div class="scrim" data-a="shut"><div class="sheet" role="dialog" aria-label="Entry"><div class="stk"><div class="seg">'+(s.id?'':'<button data-a="seg" data-id="emotion" class="'+(e?'on':'')+'">Emotion</button><button data-a="seg" data-id="activity" class="'+(!e?'on':'')+'">Activity</button>')+(s.id?'<button class="on" disabled>'+(e?'Emotion':'Activity')+'</button>':'')+'</div></div><form id="ef">';
+  if(sheet.safe){var sf=S.safe,old=$("#sheetHost .pgb"),st=old?old.scrollTop:0;$("#sheetHost").innerHTML=pgOpen("My safety plan",'data-a="shut3"',"")+'<p class="muted" style="margin-top:0">Fill this in with your therapist or psychiatrist when you can. Open it whenever thoughts of self-harm come up.</p><div class="acts" style="margin-top:8px"><a class="btn" style="display:grid;place-items:center;text-decoration:none" href="tel:1553">Call NCMH 1553</a><a class="btn ghost" style="display:grid;place-items:center;text-decoration:none" href="tel:911">Call 911</a></div><p class="muted">NCMH also: 0917-899-8727. Please check that these numbers are still current.</p><p class="muted" style="margin-bottom:0">Tap a name to call that person.</p>'+sfContacts()+toolkit()+'<form id="sf">'+area("My warning signs","signs",sf.signs)+areaP("What sets off my irritation or panic","trig",sf.trig,"For example: feeling overwhelmed, a tense talk with my wife, work pressure")+areaP("When it is building: my step-away plan","away",sf.away,"Pause, STOP technique, make my baby safe, step away briefly, ground myself, then return")+area("Things I can do on my own","steps",sf.steps)+areaP("What I can say to my wife when I am overwhelmed","words",sf.words,"I need a short break and I will come back to talk calmly")+area("Notes on who can be with me or help","people",sf.people)+area("Why staying safe matters to me","reasons",sf.reasons)+dtF("Next therapy session","nxt",sf.nxt)+dtF("Psychiatric consultation","psy",sf.psy)+'</form></div><div class="pgf"><div class="acts"><button type="button" class="btn ghost" data-a="shut3">Close</button><button class="btn" form="sf">Save</button></div></div></div>';var nw=$("#sheetHost .pgb");if(nw)nw.scrollTop=st;return}
+  if(sheet.pick){$("#sheetHost").innerHTML=pgOpen("Add a date",'data-a="shut2"',"")+'<form id="pf"><label for="f_pd">Pick a date</label><input type="date" id="f_pd" name="pd" value="'+today+'"></form></div><div class="pgf"><div class="acts"><button type="button" class="btn ghost" data-a="shut2">Cancel</button><button class="btn" form="pf">Add date</button></div></div></div>';return}var s=sheet,x=s.x,e=s.type==="emotion";
+  var h=pgOpen(s.id?(e?"Edit emotion":"Edit activity"):"New entry",'data-a="shut2"','<div class="seg">'+(s.id?'':'<button data-a="seg" data-id="emotion" class="'+(e?'on':'')+'">Emotion</button><button data-a="seg" data-id="activity" class="'+(!e?'on':'')+'">Activity</button>')+(s.id?'<button class="on" disabled>'+(e?'Emotion':'Activity')+'</button>':'')+'</div>')+'<form id="ef">';
   if(e){
     h+=fld("Emotion","emotion",x.emotion,"e.g. anxious, calm, irritated")+
     '<label for="f_intensity">How strong? <span id="iv">'+(x.intensity||5)+'</span>/10</label><input type="range" id="f_intensity" name="intensity" min="1" max="10" value="'+(x.intensity||5)+'">'+
@@ -271,9 +282,9 @@ function drawSheet(){
     fld("People I met (optional)","people",x.people)+
     fld("How I felt","felt",x.felt)+sel("Enjoyment (0–10)","pl",x.pl)+sel("Sense of achievement (0–10)","ma",x.ma)+chipsT()+area("Notes","notes",x.notes)
   }
-  h+='<div class="acts fix"><button type="button" class="btn ghost" data-a="shut2">Cancel</button><button class="btn">Save entry</button></div>';
-  if(s.id)h+='<div class="acts"><button type="button" class="btn ghost" data-a="delE" style="color:var(--danger)">'+(armed==="E"?'Tap again to delete':'Delete entry')+'</button></div>';
-  h+='</form></div></div>';
+  h+='</form>';
+  if(s.id)h+='<div class="acts" style="margin-top:12px"><button type="button" class="btn ghost" data-a="delE" style="color:var(--danger)">'+(armed==="E"?'Tap again to delete':'Delete entry')+'</button></div>';
+  h+='</div><div class="pgf"><div class="acts"><button type="button" class="btn ghost" data-a="shut2">Cancel</button><button class="btn" form="ef">Save entry</button></div></div></div>';
   $("#sheetHost").innerHTML=h;
   var r=$("#f_intensity");if(r)r.oninput=function(){$("#iv").textContent=r.value}
 }
@@ -297,6 +308,7 @@ document.addEventListener("click",function(ev){
   var a=t.dataset.a,id=t.dataset.id;
   if(a==="shut"){if(ev.target!==t)return;closeSheet();return}
   if(a==="shut2"){closeSheet();return}
+  if(a==="shut3"){sfGrab();save();closeSheet();render();return}
   if(a==="seg"){grab();sheet.type=id;drawSheet();return}
   if(a==="delE"){if(armed==="E"){S.e=S.e.filter(function(x){return x.id!==sheet.id});save();closeSheet();render();toast("Deleted")}else{armed="E";drawSheet()}return}
   if(a==="tab"){tab=id;armed=null}
@@ -476,8 +488,8 @@ function stDraw(){var e=$("#stage");if(e)e.innerHTML=stStage()}
 function closeGuide(){stopBox();var g=$("#guide");if(g)g.remove()}
 function openGuide(i){
   var tl=S.safe.tools[i];if(!tl)return;closeGuide();
-  var g=document.createElement("div");g.id="guide";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");
-  var box=/box breathing|square breathing/i.test(tl.t),h='<div class="in"><button class="lnk" data-g="back" style="margin:0;padding:8px 0">‹ Back</button>';
+  var g=document.createElement("div");g.id="guide";g.className="pg";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");
+  var box=/box breathing|square breathing/i.test(tl.t),h='<div class="pgh"><button type="button" class="lnk bk" data-g="back">‹ Back</button><div class="serif pgt">Calm-down guide</div><span></span></div><div class="pgb">';
   if(box){
     h+='<h1 class="serif" style="margin:6px 0 4px">'+esc(tl.t)+'</h1><p class="muted" style="margin:0">Also called square breathing. A simple way to ease stress and relax your body.</p>'
      +'<svg viewBox="0 0 240 240" style="width:min(72vw,280px);display:block;margin:14px auto" aria-hidden="true"><rect x="20" y="20" width="200" height="200" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 5"/>'
