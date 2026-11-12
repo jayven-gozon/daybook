@@ -3,6 +3,13 @@
 All notable changes to Daybook, newest first.
 Daybook © 2026 jayvengozon™. Dates before 12 Nov 2026 were not recorded.
 
+## 1.11.2 (2026-11-12)
+### Fixed
+- The Home Screen app now picks up new versions reliably: it asks the server for the latest files each time it opens (falling back to its saved copy when offline), and no longer installs a stale copy from the browser's cache.
+### Added
+- "A new version is ready. Reload" bar when an update arrives while the app is open.
+- More → About: version number and a Check for updates button. The app also checks for updates each time you return to it.
+
 ## 1.11.1 (2026-11-12)
 ### Changed
 - Appearance: the "Current" button is now labeled "Dark". Its colors are unchanged.

@@ -142,7 +142,13 @@ function idb(fn){try{var r=indexedDB.open("daybook",1);r.onupgradeneeded=functio
 function idbPut(v){idb(function(db){db.transaction("kv","readwrite").objectStore("kv").put(v,K)})}
 if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(function(){})}
 if(fresh){idb(function(db){var g=db.transaction("kv").objectStore("kv").get(K);g.onsuccess=function(){try{var v=JSON.parse(g.result);if(v&&Array.isArray(v.e)){S=v;norm();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}render()}}catch(e){}}})}
-if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){
+  var hadCtl=!!navigator.serviceWorker.controller;
+  window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(function(reg){window.__reg=reg;reg.update().catch(function(){})}).catch(function(){})});
+  navigator.serviceWorker.addEventListener("controllerchange",function(){if(hadCtl)showUpd();hadCtl=true})
+}
+function showUpd(){if($("#upd"))return;var b=document.createElement("div");b.id="upd";b.setAttribute("role","status");b.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:35;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between";b.innerHTML='<span>A new version is ready.</span><button type="button" class="btn" data-u="reload" style="min-height:36px;padding:6px 14px">Reload</button>';document.body.appendChild(b)}
+document.addEventListener("click",function(ev){var b=ev.target.closest&&ev.target.closest("[data-u]");if(b&&b.dataset.u==="reload")location.reload()});
 function save(){var j=JSON.stringify(S);try{localStorage.setItem(K,j)}catch(e){toast("Couldn’t save on this device")}idbPut(j)}
 function norm(){if(!Array.isArray(S.dates))S.dates=[];if(!Array.isArray(S.tags))S.tags=["work","sleep","family","alone","health","money"];if(!Array.isArray(S.cope))S.cope=["Deep breathing","Went for a walk","Talked to someone","Listened to music","Rested","Wrote it down"];if(!S.mood||typeof S.mood!=="object")S.mood={};if(!S.safe||typeof S.safe!=="object")S.safe={signs:"",steps:"",people:"",reasons:""};if(!Array.isArray(S.safe.contacts))S.safe.contacts=[];if(!Array.isArray(S.safe.tools))S.safe.tools=defaultTools();if((S.safe.tv||0)<2){var hv=S.safe.tools.map(function(x){return x.t});defaultTools().slice(5).forEach(function(x){if(hv.indexOf(x.t)<0)S.safe.tools.push(x)});S.safe.tv=2}if(!S.sl||typeof S.sl!=="object")S.sl={};if(typeof S.q!=="string")S.q="";if(S.theme!=="white")S.theme="";if(!S.sum||typeof S.sum!=="object")S.sum={};if(!S.dq||typeof S.dq!=="object")S.dq={}}
 var $=function(s){return document.querySelector(s)};
@@ -323,7 +329,7 @@ function applyTheme(){
   try{localStorage.setItem("daybook1theme",w?"white":"")}catch(e){}
   var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute("content",w?"#ffffff":"#0D1B2A")
 }
-function appearHtml(){var w=S.theme==="white";return '<h2>Appearance</h2><p class="muted" style="margin-top:0">Background color</p><div style="display:flex;gap:8px"><button type="button" class="btn'+(w?' ghost':'')+'" data-a="theme" data-id="current" aria-pressed="'+!w+'" style="flex:1">Dark</button><button type="button" class="btn'+(w?'':' ghost')+'" data-a="theme" data-id="white" aria-pressed="'+w+'" style="flex:1">White</button></div>'}
+function appearHtml(){var w=S.theme==="white";return '<h2>Appearance</h2><p class="muted" style="margin-top:0">Background color</p><div style="display:flex;gap:8px"><button type="button" class="btn'+(w?' ghost':'')+'" data-a="theme" data-id="current" aria-pressed="'+!w+'" style="flex:1">Dark</button><button type="button" class="btn'+(w?'':' ghost')+'" data-a="theme" data-id="white" aria-pressed="'+w+'" style="flex:1">White</button></div><h2>About</h2><p class="muted" style="margin-top:0">Daybook v'+VERSION+'</p><button type="button" class="btn ghost" data-a="chk">Check for updates</button>'}
 function render(){
   applyTheme();
   var y=$("#app").scrollTop;
@@ -434,6 +440,7 @@ document.addEventListener("click",function(ev){
   else if(a==="sfdel"){sfGrab();var ci=+id;if(armed==="sfdel"+ci){S.safe.contacts.splice(ci,1);armed=null;save()}else armed="sfdel"+ci;drawSheet();return}
   else if(a==="pinset"||a==="pinchg"){startSet();return}
   else if(a==="pinoff"){if(armed==="pinoff"){dropPin();armed=null;toast("PIN turned off")}else armed="pinoff"}
+  else if(a==="chk"){if(window.__reg){window.__reg.update().then(function(){toast("Checked. If an update is found, a Reload bar will appear.")},function(){toast("Couldn’t check. Are you online?")})}else toast("Updates aren’t available in this view");return}
   else if(a==="theme"){S.theme=id==="white"?"white":"";save()}
   else if(a==="dq"){sheet={dq:true,d:cur};drawSheet();return}
   else if(a==="dqy"){var dd=sheet.d,dr=S.dq[dd]=S.dq[dd]||{},dv=+t.dataset.v;if(dr[id]===dv)delete dr[id];else dr[id]=dv;if(id==="cf"){if(dr.cf===1){if(!dr.cfn)dr.cfn=1}else delete dr.cfn}if(id==="al"){if(dr.al===1){if(!dr.aln)dr.aln=1}else delete dr.aln}if(id==="mb"||id==="ml"||id==="md"){if(dr[id]!==1)delete dr[id+"t"]}save();drawSheet();return}
@@ -733,7 +740,7 @@ document.addEventListener("click",function(ev){
   else if(b.dataset.g==="tp"){gS=Math.max(0,gS-1);stDraw()}
   else if(b.dataset.g==="tr"){gS=0;stDraw()}
 });
-var VERSION="1.11.1";
+var VERSION="1.11.2";
 function foot(){return '<p class="foot">© 2026 jayvengozon™ · Daybook v'+VERSION+'</p>'}
 function lockHtml(){var arm=armed==="pinoff";return '<h2>App lock</h2>'+(P?'<p class="muted">PIN is on. Daybook asks for it when you reopen the app after 30 seconds away.</p><div class="add"><button class="btn ghost" data-a="pinchg">Change PIN</button><button class="btn'+(arm?'':' ghost')+'" data-a="pinoff">'+(arm?'Tap again to turn off':'Turn off PIN')+'</button></div>':'<p class="muted">Protect your journal with a 4-digit PIN. It keeps casual snoopers out. It does not encrypt your data.</p><div class="add"><button class="btn" data-a="pinset">Set a 4-digit PIN</button></div>')}
 var P=null,PK="daybook1pin",TK="daybook1try",ent="",mode="",tmp="",lockMsg="",forgot=false,hideAt=0;
@@ -778,7 +785,8 @@ document.addEventListener("click",function(ev){
 });
 document.addEventListener("visibilitychange",function(){
   if(document.hidden){hideAt=Date.now()}
-  else if(P&&hideAt&&Date.now()-hideAt>30000&&!$("#lock")){showLock()}
+  else if(window.__reg&&!window.__upd){window.__reg.update().catch(function(){})}
+  if(!document.hidden&&P&&hideAt&&Date.now()-hideAt>30000&&!$("#lock")){showLock()}
 });
 if(!P){idb(function(db){var g=db.transaction("kv").objectStore("kv").get(PK);g.onsuccess=function(){try{var v=JSON.parse(g.result);if(v&&v.h){P=v;try{localStorage.setItem(PK,g.result)}catch(e){}showLock()}}catch(e){}}})}
 render();
