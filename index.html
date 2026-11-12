@@ -122,6 +122,8 @@ html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;overscro
 .opt[aria-checked=true]{background:var(--bg);font-weight:600}
 .sec{width:100%;display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:13px 14px;background:var(--surf);border:1px solid var(--line);border-radius:12px;font-weight:600;font-size:16px;color:var(--ink)}
 .secb{padding:4px 2px 8px}
+#app{padding-top:0}
+.top{margin:0 -16px 8px;padding-top:calc(18px + env(safe-area-inset-top,0px))}
 </style>
 </head>
 <body>
@@ -222,7 +224,7 @@ function viewList(){
 }
 function viewHome(){
   var set={};S.e.forEach(function(x){set[x.date]=1});S.dates.forEach(function(d){set[d]=1});set[today]=1;
-  var ds=Object.keys(set).sort().reverse(),h='<div class="top"><h1>Daybook</h1><div class="add"><button class="btn" data-a="pick" style="width:100%">Add date</button></div></div>'+moodBar(today,"How are you today?")+'<button class="day" data-a="safe" style="border-left:5px solid var(--danger)"><b class="serif">My safety plan</b><span class="muted">'+(S.safe.signs||S.safe.steps||S.safe.people||S.safe.reasons?'Open':'Set up')+'</span></button>'+'<h2>Your days</h2>';
+  var ds=Object.keys(set).sort().reverse(),h='<div class="top"><h1>Daybook</h1><div class="add"><button class="btn" data-a="pick" style="width:100%">Add date</button></div></div>'+bkBanner()+moodBar(today,"How are you today?")+'<button class="day" data-a="safe" style="border-left:5px solid var(--danger)"><b class="serif">My safety plan</b><span class="muted">'+(S.safe.signs||S.safe.steps||S.safe.people||S.safe.reasons?'Open':'Set up')+'</span></button>'+'<h2>Your days</h2>';
   ds.forEach(function(d){
     var es=S.e.filter(function(x){return x.date===d}),n=es.length,s=stats(d);
     var pv=es.slice(0,2).map(function(x){return esc(x.type==="emotion"?x.emotion:x.what)}).join(", ");
@@ -249,16 +251,40 @@ function weeklyHtml(){
 }
 var mo={K:false,T:false,C:false};
 function sec(k,title,n,body){var o=mo[k];return '<button type="button" class="sec" data-a="mo" data-id="'+k+'" aria-expanded="'+o+'"><span>'+title+' <span class="muted">('+n+')</span></span><span>'+(o?'▴':'▾')+'</span></button>'+(o?'<div class="secb">'+body+'</div>':'')}
+function agoDays(t){return Math.floor((Date.now()-t)/86400000)}
+function bkBanner(){
+  var has=S.e.length||S.d.length||S.m.length,box='<div style="border:1px solid var(--line);border-left:5px solid var(--acc);border-radius:12px;background:var(--surf);padding:12px;margin:12px 0">';
+  if(has&&(!S.bk||agoDays(S.bk)>=7))return box+'<b>Back up your journal</b><p class="muted" style="margin:4px 0 8px">'+(S.bk?'Last backup: '+agoDays(S.bk)+' days ago.':'You haven’t saved a backup yet.')+' iOS can clear app data, so keep a copy in the Files app.</p><button class="btn" data-a="bkfile">Save backup file</button></div>';
+  if(!has&&!S.bk)return box+'<b>Your journal is empty</b><p class="muted" style="margin:4px 0 8px">If you had entries before, restore them from a backup in More.</p><button class="btn ghost" data-a="tab" data-id="hist">Open More</button></div>';
+  return ''
+}
+function backupFile(){
+  S.bk=Date.now();save();
+  var j=JSON.stringify(S),name="daybook-backup-"+today+".json";
+  try{
+    var f=new File([j],name,{type:"application/json"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"Daybook backup"}).catch(function(){})}
+    else{var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([j],{type:"application/json"}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
+  }catch(e){toast("Couldn’t create the backup file")}
+  render()
+}
+function restoreFrom(t){
+  try{var v=JSON.parse(t);if(!Array.isArray(v.e)||!Array.isArray(v.d)||!Array.isArray(v.m)||typeof v.md!=="object")throw 0;S=v;norm();save();toast("Restored");render();return true}
+  catch(e){toast("That backup isn’t valid");return false}
+}
+function checkPersist(){
+  try{if(navigator.storage&&navigator.storage.persisted)navigator.storage.persisted().then(function(v){var e=$("#pst");if(e)e.textContent="Storage protection: "+(v?"on":"not guaranteed by iOS")+". A backup file in Files is the safest protection."})}catch(e){}
+}
 function viewHist(){
   var h='<div class="top"><h1>More</h1></div>'+weeklyHtml()+sec("K","Calm-down toolkit",S.safe.tools.length,toolkit(true))+sec("T","Tags",S.tags.length,lst("T",S.tags))+sec("C","Coping options",S.cope.length,lst("C",S.cope))+lockHtml()+'<h2>Backup</h2>';
-  h+='<p class="muted">Your journal is stored only on this device. Copy a backup now and then, and paste it back to restore.</p><div class="add"><button class="btn ghost" data-a="copy">Copy backup</button></div><label for="rs">Restore from backup</label><textarea id="rs" placeholder="Paste backup text here"></textarea><div class="add"><button class="btn" data-a="restore">Restore</button></div>';
+  h+='<p class="muted">Your journal is stored only on this device, and iOS can clear it. Last backup: '+(S.bk?agoDays(S.bk)===0?'today':agoDays(S.bk)+' days ago':'never')+'.</p><p id="pst" class="muted">Storage protection: checking…</p><div class="add"><button class="btn" data-a="bkfile">Save backup file</button><button class="btn ghost" data-a="copy">Copy backup</button></div><p class="muted" style="margin-top:4px">Save backup file opens the share sheet. Choose Save to Files, ideally in iCloud Drive.</p><label for="rf">Restore from a backup file</label><input id="rf" type="file" accept=".json,application/json"><label for="rs">Or paste backup text</label><textarea id="rs" placeholder="Paste backup text here"></textarea><div class="add"><button class="btn" data-a="restore">Restore</button></div>';
   return h
 }
 function render(){
   var y=$("#app").scrollTop;
   $("#app").innerHTML=(tab==="home"?viewHome():tab==="today"?viewToday():tab==="list"?viewList():viewHist())+(tab==="home"||tab==="hist"?foot():"")+
   '<nav class="tabs">'+[["home","Home"],["today","Journal"],["list","Checklist"],["hist","More"]].map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join("")+'</nav>';
-  $("#app").scrollTop=y
+  $("#app").scrollTop=y;if(tab==="hist")checkPersist()
 }
 function sel(l,n,v){var o='<option value="">–</option>';for(var i=0;i<=10;i++)o+='<option value="'+i+'"'+(String(v)===String(i)?' selected':'')+'>'+i+'</option>';return '<label for="f_'+n+'">'+l+'</label><select id="f_'+n+'" name="'+n+'">'+o+'</select>'}
 function fld(l,n,v,ph){return '<label for="f_'+n+'">'+l+'</label><input id="f_'+n+'" name="'+n+'" value="'+esc(v)+'" placeholder="'+(ph||"")+'" autocomplete="off">'}
@@ -374,17 +400,16 @@ document.addEventListener("click",function(ev){
     var k=a.slice(3)+id;
     if(armed===k){if(a==="delD")S.d=S.d.filter(function(x){return x.id!==id});else S.m=S.m.filter(function(x){return x.id!==id});armed=null;save()}else armed=k
   }
-  else if(a==="copy"){copyText(JSON.stringify(S)).then(function(){toast("Backup copied")},function(){toast("Copy isn’t available here")});return}
-  else if(a==="restore"){
-    try{var v=JSON.parse($("#rs").value);if(!Array.isArray(v.e)||!Array.isArray(v.d)||!Array.isArray(v.m)||typeof v.md!=="object")throw 0;S=v;norm();save();toast("Restored")}
-    catch(e){toast("That backup text isn’t valid");return}
-  }
+  else if(a==="bkfile"){backupFile();return}
+  else if(a==="copy"){S.bk=Date.now();save();copyText(JSON.stringify(S)).then(function(){toast("Backup copied")},function(){toast("Copy isn’t available here")});return}
+  else if(a==="restore"){if(restoreFrom($("#rs").value))return;return}
   render()
 });
 document.addEventListener("change",function(ev){
   var t=ev.target;
   if(t.id==="sh"){var d=t.dataset.d,v=t.value.trim();S.sl[d]=S.sl[d]||{};if(v)S.sl[d].h=v;else delete S.sl[d].h;save()}
   else if(t.id==="wq"){S.q=t.value;save()}
+  else if(t.id==="rf"&&t.files&&t.files[0]){var rd=new FileReader();rd.onload=function(){restoreFrom(String(rd.result))};rd.readAsText(t.files[0])}
   else if(t.id==="tsel"){var cu=$("#tcustom");if(cu)cu.style.display=t.value==="custom"?"block":"none"}
 });
 document.addEventListener("submit",function(ev){
