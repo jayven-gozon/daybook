@@ -11,13 +11,15 @@
 <meta name="apple-mobile-web-app-title" content="Daybook">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#0D1B2A">
+<script>try{if(localStorage.getItem("daybook1theme")==="white")document.documentElement.setAttribute("data-theme","white")}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <style>
 :root{--bg:#E0E1DD;--surf:#f3f3f1;--ink:#0D1B2A;--mute:#415A77;--line:#c4cad1;--acc:#415A77;--accT:#E0E1DD;--emo:#1B263B;--emoT:#E0E1DD;--act:#778DA9;--actT:#0D1B2A;--danger:#b3372f;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0D1B2A;--surf:#1B263B;--ink:#E0E1DD;--mute:#8a9db5;--line:#33445c;--acc:#778DA9;--accT:#0D1B2A;--emo:#415A77;--emoT:#E0E1DD;--act:#778DA9;--actT:#0D1B2A;--danger:#ef8a80;color-scheme:dark}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="white"]){--bg:#0D1B2A;--surf:#1B263B;--ink:#E0E1DD;--mute:#8a9db5;--line:#33445c;--acc:#778DA9;--accT:#0D1B2A;--emo:#415A77;--emoT:#E0E1DD;--act:#778DA9;--actT:#0D1B2A;--danger:#ef8a80;color-scheme:dark}}
+:root[data-theme="white"]{--bg:#ffffff;--surf:#f2f4f6;--line:#d3d9e0;color-scheme:light}
 :root[data-theme="dark"]{--bg:#0D1B2A;--surf:#1B263B;--ink:#E0E1DD;--mute:#8a9db5;--line:#33445c;--acc:#778DA9;--accT:#0D1B2A;--emo:#415A77;--emoT:#E0E1DD;--act:#778DA9;--actT:#0D1B2A;--danger:#ef8a80;color-scheme:dark}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -142,7 +144,7 @@ if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().cat
 if(fresh){idb(function(db){var g=db.transaction("kv").objectStore("kv").get(K);g.onsuccess=function(){try{var v=JSON.parse(g.result);if(v&&Array.isArray(v.e)){S=v;norm();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}render()}}catch(e){}}})}
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 function save(){var j=JSON.stringify(S);try{localStorage.setItem(K,j)}catch(e){toast("Couldn’t save on this device")}idbPut(j)}
-function norm(){if(!Array.isArray(S.dates))S.dates=[];if(!Array.isArray(S.tags))S.tags=["work","sleep","family","alone","health","money"];if(!Array.isArray(S.cope))S.cope=["Deep breathing","Went for a walk","Talked to someone","Listened to music","Rested","Wrote it down"];if(!S.mood||typeof S.mood!=="object")S.mood={};if(!S.safe||typeof S.safe!=="object")S.safe={signs:"",steps:"",people:"",reasons:""};if(!Array.isArray(S.safe.contacts))S.safe.contacts=[];if(!Array.isArray(S.safe.tools))S.safe.tools=defaultTools();if((S.safe.tv||0)<2){var hv=S.safe.tools.map(function(x){return x.t});defaultTools().slice(5).forEach(function(x){if(hv.indexOf(x.t)<0)S.safe.tools.push(x)});S.safe.tv=2}if(!S.sl||typeof S.sl!=="object")S.sl={};if(typeof S.q!=="string")S.q=""}
+function norm(){if(!Array.isArray(S.dates))S.dates=[];if(!Array.isArray(S.tags))S.tags=["work","sleep","family","alone","health","money"];if(!Array.isArray(S.cope))S.cope=["Deep breathing","Went for a walk","Talked to someone","Listened to music","Rested","Wrote it down"];if(!S.mood||typeof S.mood!=="object")S.mood={};if(!S.safe||typeof S.safe!=="object")S.safe={signs:"",steps:"",people:"",reasons:""};if(!Array.isArray(S.safe.contacts))S.safe.contacts=[];if(!Array.isArray(S.safe.tools))S.safe.tools=defaultTools();if((S.safe.tv||0)<2){var hv=S.safe.tools.map(function(x){return x.t});defaultTools().slice(5).forEach(function(x){if(hv.indexOf(x.t)<0)S.safe.tools.push(x)});S.safe.tv=2}if(!S.sl||typeof S.sl!=="object")S.sl={};if(typeof S.q!=="string")S.q="";if(S.theme!=="white")S.theme="";if(!S.sum||typeof S.sum!=="object")S.sum={};if(!S.dq||typeof S.dq!=="object")S.dq={}}
 var $=function(s){return document.querySelector(s)};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
 var pad=function(n){return(n<10?"0":"")+n};
@@ -188,13 +190,48 @@ function head(title){
   if(cur!==today)h+='<button class="lnk" data-a="now">Back to today</button>';
   return h+'</div>'
 }
+var DQK=["cf","al","wt","mb","ml","md"];
+function dqCount(d){var r=S.dq[d]||{};return DQK.filter(function(k){return k==="wt"?typeof r.wt==="number":(r[k]===0||r[k]===1)}).length}
+function setWater(d,v){v=String(v).trim();var r=S.dq[d]=S.dq[d]||{};if(v===""){delete r.wt}else{var n=Math.floor(+v);if(isNaN(n))return;r.wt=Math.max(0,Math.min(30,n))}save()}
+function dayExtras(d){
+  var n=dqCount(d);
+  return '<h2>Daily check-in</h2><button type="button" class="btn ghost" data-a="dq" style="width:100%;display:flex;justify-content:space-between;align-items:center"><span>Open check-in</span><span class="muted">'+(n===DQK.length?'Done':n+' of '+DQK.length+' answered')+' ›</span></button>'
+   +'<h2>Summary of my day</h2><textarea id="dsum" data-d="'+d+'" aria-label="Summary of my day" placeholder="Dump anything on your mind about today: how it went, what you felt, what you want to remember." style="min-height:120px">'+esc(S.sum[d]||"")+'</textarea>'
+}
+function dqLines(days){
+  var cc=0,cd=0,ca=0,ad=0,ac=0,logged=0,meals=0,md=0,ws=0,wd=0;
+  days.forEach(function(d){var r=S.dq[d];if(!r)return;
+    if(r.cf===0||r.cf===1){logged++;if(r.cf===1){cd++;cc+=r.cfn||1}}
+    if(r.al===0||r.al===1){if(r.al===1){ad++;ac+=r.aln||1}}
+    if(typeof r.wt==="number"){wd++;ws+=r.wt}
+    var any=false,m=0;["mb","ml","md"].forEach(function(k){if(r[k]===0||r[k]===1){any=true;if(r[k]===1)m++}});if(any){md++;meals+=m}});
+  var o=[];
+  if(logged)o.push("Coffee: "+cc+" cups on "+cd+" of "+logged+" logged days");
+  if(ad||logged)o.push("Alcohol: "+ac+" drinks on "+ad+" days");
+  if(wd)o.push("Water: "+(ws/wd).toFixed(1)+" glasses per logged day");
+  if(md)o.push("Meals eaten: "+(meals/md).toFixed(1)+" of 3 per logged day");
+  return o
+}
+function dqRow(k,label,r){return '<div style="margin:10px 0"><div style="font-weight:600;margin-bottom:6px">'+label+'</div><div style="display:flex;gap:8px"><button type="button" class="btn'+(r[k]===1?'':' ghost')+'" data-a="dqy" data-id="'+k+'" data-v="1" aria-pressed="'+(r[k]===1)+'" style="flex:1">Yes</button><button type="button" class="btn'+(r[k]===0?'':' ghost')+'" data-a="dqy" data-id="'+k+'" data-v="0" aria-pressed="'+(r[k]===0)+'" style="flex:1">No</button></div>'+(("mb ml md".indexOf(k)>=0&&r[k]===1)?'<input class="mealt" type="text" maxlength="200" data-d="'+dqD+'" data-k="'+k+'t" value="'+esc(r[k+"t"]||"")+'" placeholder="What did you eat?" aria-label="What did you eat for '+label.toLowerCase()+'" autocomplete="off" style="margin-top:8px">':'')+'</div>'}
+function dqCounter(n,label,r){return '<div style="display:flex;align-items:center;gap:10px;margin:4px 0 10px"><span class="muted" style="flex:1">'+label+'</span><button type="button" class="btn ghost" data-a="dqn" data-id="'+n+'" data-v="-1" aria-label="Fewer" style="min-width:46px">−</button><b style="min-width:28px;text-align:center;font-size:20px">'+(r[n]||1)+'</b><button type="button" class="btn ghost" data-a="dqn" data-id="'+n+'" data-v="1" aria-label="More" style="min-width:46px">+</button></div>'}
+var dqD="";
+function setMeal(d,k,v){var r=S.dq[d]=S.dq[d]||{};v=v.trim();if(v)r[k]=v;else delete r[k];save()}
+function dqBody(d){
+  dqD=d;
+  var r=S.dq[d]||{},card='<div style="background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:12px 0">';
+  return card+dqRow("cf","Have you had coffee today?",r)+(r.cf===1?dqCounter("cfn","How many cups?",r):'')+'</div>'
+   +card+dqRow("al","Have you had any alcoholic drinks today?",r)+(r.al===1?dqCounter("aln","How many drinks?",r):'')+'</div>'
+   +card+'<div style="font-weight:600;margin-bottom:8px">How many glasses of water have you drunk today?</div><div style="display:flex;align-items:center;gap:10px"><button type="button" class="btn ghost" data-a="dqw" data-v="-1" aria-label="Fewer glasses" style="min-width:46px">−</button><input id="dqwt" type="number" inputmode="numeric" min="0" max="30" step="1" data-d="'+d+'" value="'+(r.wt===undefined?'':r.wt)+'" placeholder="0" aria-label="Glasses of water" style="width:88px;text-align:center;font-size:20px"><button type="button" class="btn ghost" data-a="dqw" data-v="1" aria-label="More glasses" style="min-width:46px">+</button><span class="muted">glasses</span></div></div>'
+   +card+'<div style="font-weight:600">Have you eaten today?</div>'+dqRow("mb","Breakfast",r)+dqRow("ml","Lunch",r)+dqRow("md","Dinner",r)+'</div>'
+   +'<p class="muted">Your answers save as you tap. Tap a selected answer again to clear it.</p>'
+}
 function sleepBlock(d){
   var s=S.sl[d]||{};
   return '<h2>Sleep and energy</h2><div class="add" style="align-items:center"><label for="sh" style="margin:0;flex:none">Hours slept</label><input id="sh" type="number" inputmode="decimal" min="0" max="24" step="0.5" value="'+esc(s.h||"")+'" data-d="'+d+'"></div><div class="chips">'+[1,2,3,4,5].map(function(n){return '<button class="chip'+(s.en===n?' on':'')+'" data-a="en" data-d="'+d+'" data-id="'+n+'" aria-label="Energy '+n+'">'+n+'</button>'}).join("")+'</div><p class="muted">Energy: 1 drained, 5 energized</p>'
 }
 function viewToday(){
   var es=S.e.filter(function(x){return x.date===cur}).sort(function(a,b){return a.time<b.time?-1:1});
-  var h=head("Journal")+moodBar(cur,"Mood for this day")+sleepBlock(cur);
+  var h=head("Journal")+moodBar(cur,"Mood for this day")+sleepBlock(cur)+dayExtras(cur);
   if(!es.length)h+='<p class="empty">No entries for this day yet. Add one when you notice an emotion or finish something you want to remember.</p>';
   es.forEach(function(x){
     var b;
@@ -244,7 +281,7 @@ function weekSummary(){
   emo.forEach(function(x){S.cope.forEach(function(c){if(copeUsed(x,c))cp[c]=(cp[c]||0)+1})});
   days.forEach(function(d){var s=stats(d);ok+=s.ok;tot+=s.tot});
   var num=function(a,k){return a.filter(function(x){return x[k]!==undefined&&x[k]!==""}).map(function(x){return +x[k]})};
-  return ["Last 7 days","Average mood: "+av(mo)+" / 5 ("+mo.length+" days logged)","Average sleep: "+av(sl)+" hours, energy "+av(en)+" / 5","Emotion entries: "+emo.length+", average intensity "+av(num(emo,"intensity"))+" / 10","Activities: "+act.length+", enjoyment "+av(num(act,"pl"))+" / 10, achievement "+av(num(act,"ma"))+" / 10","Top triggers: "+topN(tg),"Coping used most: "+topN(cp),"Checklist done: "+(tot?Math.round(100*ok/tot)+"%":"–")]
+  return ["Last 7 days","Average mood: "+av(mo)+" / 5 ("+mo.length+" days logged)","Average sleep: "+av(sl)+" hours, energy "+av(en)+" / 5","Emotion entries: "+emo.length+", average intensity "+av(num(emo,"intensity"))+" / 10","Activities: "+act.length+", enjoyment "+av(num(act,"pl"))+" / 10, achievement "+av(num(act,"ma"))+" / 10","Top triggers: "+topN(tg),"Coping used most: "+topN(cp),"Checklist done: "+(tot?Math.round(100*ok/tot)+"%":"–")].concat(dqLines(days))
 }
 function weeklyHtml(){
   return '<h2>This week</h2><div class="card" style="display:block;cursor:default;border-left-color:var(--acc)">'+weekSummary().slice(1).map(function(l){return '<p>'+esc(l)+'</p>'}).join("")+'</div><label for="wq">Questions or notes for my therapist or psychiatrist</label><textarea id="wq">'+esc(S.q)+'</textarea><div class="add"><button class="btn ghost" data-a="wcopy">Copy summary</button></div>'
@@ -276,11 +313,19 @@ function checkPersist(){
   try{if(navigator.storage&&navigator.storage.persisted)navigator.storage.persisted().then(function(v){var e=$("#pst");if(e)e.textContent="Storage protection: "+(v?"on":"not guaranteed by iOS")+". A backup file in Files is the safest protection."})}catch(e){}
 }
 function viewHist(){
-  var h='<div class="top"><h1>More</h1></div>'+weeklyHtml()+sec("K","Calm-down toolkit",S.safe.tools.length,toolkit(true))+sec("T","Tags",S.tags.length,lst("T",S.tags))+sec("C","Coping options",S.cope.length,lst("C",S.cope))+lockHtml()+'<h2>Backup</h2>';
+  var h='<div class="top"><h1>More</h1></div>'+weeklyHtml()+sec("K","Calm-down toolkit",S.safe.tools.length,toolkit(true))+sec("T","Tags",S.tags.length,lst("T",S.tags))+sec("C","Coping options",S.cope.length,lst("C",S.cope))+appearHtml()+lockHtml()+'<h2>Backup</h2>';
   h+='<p class="muted">Your journal is stored only on this device, and iOS can clear it. Last backup: '+(S.bk?agoDays(S.bk)===0?'today':agoDays(S.bk)+' days ago':'never')+'.</p><p id="pst" class="muted">Storage protection: checking…</p><div class="add"><button class="btn" data-a="bkfile">Save backup file</button><button class="btn ghost" data-a="copy">Copy backup</button></div><p class="muted" style="margin-top:4px">Save backup file opens the share sheet. Choose Save to Files, ideally in iCloud Drive.</p><label for="rf">Restore from a backup file</label><input id="rf" type="file" accept=".json,application/json"><label for="rs">Or paste backup text</label><textarea id="rs" placeholder="Paste backup text here"></textarea><div class="add"><button class="btn" data-a="restore">Restore</button></div>';
   return h
 }
+function applyTheme(){
+  var w=S.theme==="white",r=document.documentElement;
+  if(w)r.setAttribute("data-theme","white");else if(r.getAttribute("data-theme")==="white")r.removeAttribute("data-theme");
+  try{localStorage.setItem("daybook1theme",w?"white":"")}catch(e){}
+  var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute("content",w?"#ffffff":"#0D1B2A")
+}
+function appearHtml(){var w=S.theme==="white";return '<h2>Appearance</h2><p class="muted" style="margin-top:0">Background color</p><div style="display:flex;gap:8px"><button type="button" class="btn'+(w?' ghost':'')+'" data-a="theme" data-id="current" aria-pressed="'+!w+'" style="flex:1">Dark</button><button type="button" class="btn'+(w?'':' ghost')+'" data-a="theme" data-id="white" aria-pressed="'+w+'" style="flex:1">White</button></div>'}
 function render(){
+  applyTheme();
   var y=$("#app").scrollTop;
   $("#app").innerHTML=(tab==="home"?viewHome():tab==="today"?viewToday():tab==="list"?viewList():viewHist())+(tab==="home"||tab==="hist"?foot():"")+
   '<nav class="tabs">'+[["home","Home"],["today","Journal"],["list","Checklist"],["hist","More"]].map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join("")+'</nav>';
@@ -293,7 +338,7 @@ function openSheet(type,id){
   var x=id?S.e.filter(function(e){return e.id===id})[0]:null;
   sheet={type:x?x.type:type,id:id||null,x:Object.assign({},x||{})};sheet.x.tags=(sheet.x.tags||[]).slice();drawSheet()
 }
-var SFF=["signs","trig","away","steps","words","people","reasons","nxt","psy"];
+var SFF=["signs","trig","away","steps","people","reasons","nxt","psy"];
 function areaP(l,n,v,ph){return '<label for="f_'+n+'">'+l+'</label><textarea id="f_'+n+'" name="'+n+'" placeholder="'+esc(ph)+'">'+esc(v||"")+'</textarea>'}
 function dtF(l,n,v){return '<label for="f_'+n+'">'+l+'</label><input id="f_'+n+'" name="'+n+'" type="date" value="'+esc(v||"")+'">'}
 function defaultTools(){return [
@@ -312,14 +357,15 @@ function toolkit(inMore){
    +'<label for="tsel">Add a technique</label><select id="tsel"><option value="">Choose one…</option>'+miss+'<option value="custom">Create my own…</option></select><div id="tcustom" style="display:none"><label for="tn">Name</label><input id="tn" placeholder="For example: Walk around the block" autocomplete="off"><label for="tb">Steps (optional)</label><textarea id="tb" placeholder="What I do, step by step"></textarea></div><div class="acts"><button type="button" class="btn" data-a="tkadd">Add</button></div>'
 }
 function telN(p){return String(p).replace(/[^\d+]/g,"")}
-function sfGrab(){var f=$("#sf");if(f)["signs","trig","away","steps","words","people","reasons","nxt","psy"].forEach(function(n){S.safe[n]=f.elements[n].value})}
+function sfGrab(){var f=$("#sf");if(f)SFF.forEach(function(n){S.safe[n]=f.elements[n].value})}
 function sfContacts(){
   var c=S.safe.contacts;
   return '<h2>People I can call</h2>'+(c.length?c.map(function(x,i){var arm=armed==="sfdel"+i;return '<div style="display:flex;gap:8px;margin:6px 0"><a class="btn" style="flex:1;display:block;text-align:center;line-height:44px;text-decoration:none" href="tel:'+esc(telN(x.p))+'">Call '+esc(x.n)+'</a><button type="button" class="x'+(arm?' arm':'')+'" data-a="sfdel" data-id="'+i+'" aria-label="Remove '+esc(x.n)+'">'+(arm?'Remove?':'✕')+'</button></div>'}).join(""):'<p class="muted">No contacts yet. Add a name and number below.</p>')+'<div class="mini"><input id="cn" placeholder="Name" aria-label="Contact name" autocomplete="off"><input id="cp" type="tel" inputmode="tel" placeholder="Number" aria-label="Contact number" autocomplete="off"><button type="button" class="btn ghost" data-a="sfadd">Add</button></div>'
 }
 function pgOpen(title,back,sub){return '<div class="pg" role="dialog" aria-label="'+esc(title)+'"><div class="pgh"><button type="button" class="lnk bk" '+back+'>‹ Back</button><div class="serif pgt">'+esc(title)+'</div><span></span></div>'+(sub?'<div class="pgsub">'+sub+'</div>':'')+'<div class="pgb">'}
 function drawSheet(){
-  if(sheet.safe){var sf=S.safe,old=$("#sheetHost .pgb"),st=old?old.scrollTop:0;$("#sheetHost").innerHTML=pgOpen("My safety plan",'data-a="shut3"',"")+'<p class="muted" style="margin-top:0">Fill this in with your therapist or psychiatrist when you can. Open it whenever thoughts of self-harm come up.</p><div class="acts" style="margin-top:8px"><a class="btn" style="display:grid;place-items:center;text-decoration:none" href="tel:1553">Call NCMH 1553</a><a class="btn ghost" style="display:grid;place-items:center;text-decoration:none" href="tel:911">Call 911</a></div><p class="muted">NCMH also: 0917-899-8727. Please check that these numbers are still current.</p><p class="muted" style="margin-bottom:0">Tap a name to call that person.</p>'+sfContacts()+toolkit()+'<form id="sf">'+area("My warning signs","signs",sf.signs)+areaP("What sets off my irritation or panic","trig",sf.trig,"For example: feeling overwhelmed, a tense talk with my wife, work pressure")+areaP("When it is building: my step-away plan","away",sf.away,"Pause, STOP technique, make my baby safe, step away briefly, ground myself, then return")+area("Things I can do on my own","steps",sf.steps)+areaP("What I can say to my wife when I am overwhelmed","words",sf.words,"I need a short break and I will come back to talk calmly")+area("Notes on who can be with me or help","people",sf.people)+area("Why staying safe matters to me","reasons",sf.reasons)+dtF("Next therapy session","nxt",sf.nxt)+dtF("Psychiatric consultation","psy",sf.psy)+'</form></div><div class="pgf"><div class="acts"><button type="button" class="btn ghost" data-a="shut3">Close</button><button class="btn" form="sf">Save</button></div></div></div>';var nw=$("#sheetHost .pgb");if(nw)nw.scrollTop=st;return}
+  if(sheet.dq){var od=$("#sheetHost .pgb"),sd=od?od.scrollTop:0;$("#sheetHost").innerHTML=pgOpen("Daily check-in",'data-a="shut2"','<span class="muted">'+esc(fmt(sheet.d,{weekday:"long",month:"short",day:"numeric"}))+'</span>')+dqBody(sheet.d)+'</div><div class="pgf"><div class="acts"><button class="btn" data-a="shut2">Done</button></div></div></div>';var nd=$("#sheetHost .pgb");if(nd)nd.scrollTop=sd;return}
+  if(sheet.safe){var sf=S.safe,old=$("#sheetHost .pgb"),st=old?old.scrollTop:0;$("#sheetHost").innerHTML=pgOpen("My safety plan",'data-a="shut3"',"")+'<p class="muted" style="margin-top:0">Fill this in with your therapist or psychiatrist when you can. Open it whenever thoughts of self-harm come up.</p><div class="acts" style="margin-top:8px"><a class="btn" style="display:grid;place-items:center;text-decoration:none" href="tel:1553">Call NCMH 1553</a><a class="btn ghost" style="display:grid;place-items:center;text-decoration:none" href="tel:911">Call 911</a></div><p class="muted">NCMH also: 0917-899-8727. Please check that these numbers are still current.</p><p class="muted" style="margin-bottom:0">Tap a name to call that person.</p>'+sfContacts()+toolkit()+'<form id="sf">'+area("My warning signs","signs",sf.signs)+areaP("What sets off my irritation or panic","trig",sf.trig,"For example: feeling overwhelmed, a tense talk with my wife, work pressure")+areaP("When it is building: my step-away plan","away",sf.away,"Pause, STOP technique, make my baby safe, step away briefly, ground myself, then return")+area("Things I can do on my own","steps",sf.steps)+area("Notes on who can be with me or help","people",sf.people)+area("Why staying safe matters to me","reasons",sf.reasons)+dtF("Next therapy session","nxt",sf.nxt)+dtF("Psychiatric consultation","psy",sf.psy)+'</form></div><div class="pgf"><div class="acts"><button type="button" class="btn ghost" data-a="shut3">Close</button><button class="btn" form="sf">Save</button></div></div></div>';var nw=$("#sheetHost .pgb");if(nw)nw.scrollTop=st;return}
   if(sheet.pick){$("#sheetHost").innerHTML=pgOpen("Add a date",'data-a="shut2"',"")+'<form id="pf"><label for="f_pd">Pick a date</label><input type="date" id="f_pd" name="pd" value="'+today+'"></form></div><div class="pgf"><div class="acts"><button type="button" class="btn ghost" data-a="shut2">Cancel</button><button class="btn" form="pf">Add date</button></div></div></div>';return}var s=sheet,x=s.x,e=s.type==="emotion";
   var h=pgOpen(s.id?(e?"Edit emotion":"Edit activity"):"New entry",'data-a="shut2"','<div class="seg">'+(s.id?'':'<button data-a="seg" data-id="emotion" class="'+(e?'on':'')+'">Emotion</button><button data-a="seg" data-id="activity" class="'+(!e?'on':'')+'">Activity</button>')+(s.id?'<button class="on" disabled>'+(e?'Emotion':'Activity')+'</button>':'')+'</div>')+'<form id="ef">';
   if(e){
@@ -359,7 +405,7 @@ document.addEventListener("click",function(ev){
   var t=ev.target.closest("[data-a]");if(!t)return;
   var a=t.dataset.a,id=t.dataset.id;
   if(a==="shut"){if(ev.target!==t)return;closeSheet();return}
-  if(a==="shut2"){closeSheet();return}
+  if(a==="shut2"){closeSheet();render();return}
   if(a==="shut3"){sfGrab();save();closeSheet();render();return}
   if(a==="seg"){grab();sheet.type=id;drawSheet();return}
   if(a==="delE"){if(armed==="E"){S.e=S.e.filter(function(x){return x.id!==sheet.id});save();closeSheet();render();toast("Deleted")}else{armed="E";drawSheet()}return}
@@ -388,6 +434,11 @@ document.addEventListener("click",function(ev){
   else if(a==="sfdel"){sfGrab();var ci=+id;if(armed==="sfdel"+ci){S.safe.contacts.splice(ci,1);armed=null;save()}else armed="sfdel"+ci;drawSheet();return}
   else if(a==="pinset"||a==="pinchg"){startSet();return}
   else if(a==="pinoff"){if(armed==="pinoff"){dropPin();armed=null;toast("PIN turned off")}else armed="pinoff"}
+  else if(a==="theme"){S.theme=id==="white"?"white":"";save()}
+  else if(a==="dq"){sheet={dq:true,d:cur};drawSheet();return}
+  else if(a==="dqy"){var dd=sheet.d,dr=S.dq[dd]=S.dq[dd]||{},dv=+t.dataset.v;if(dr[id]===dv)delete dr[id];else dr[id]=dv;if(id==="cf"){if(dr.cf===1){if(!dr.cfn)dr.cfn=1}else delete dr.cfn}if(id==="al"){if(dr.al===1){if(!dr.aln)dr.aln=1}else delete dr.aln}if(id==="mb"||id==="ml"||id==="md"){if(dr[id]!==1)delete dr[id+"t"]}save();drawSheet();return}
+  else if(a==="dqw"){var wr=S.dq[sheet.d]=S.dq[sheet.d]||{};wr.wt=Math.min(30,Math.max(0,(wr.wt||0)+(+t.dataset.v)));save();drawSheet();return}
+  else if(a==="dqn"){var dr2=S.dq[sheet.d]=S.dq[sheet.d]||{};dr2[id]=Math.min(20,Math.max(1,(dr2[id]||1)+(+t.dataset.v)));save();drawSheet();return}
   else if(a==="en"){var d3=t.dataset.d,n3=+id;S.sl[d3]=S.sl[d3]||{};if(S.sl[d3].en===n3)delete S.sl[d3].en;else S.sl[d3].en=n3;save()}
   else if(a==="safe"){sheet={safe:true};drawSheet();return}
   else if(a==="wcopy"){copyText(weekSummary().join("\n")+"\n\nQuestions for my appointment:\n"+S.q).then(function(){toast("Summary copied")},function(){toast("Copy isn’t available here")});return}
@@ -409,13 +460,18 @@ document.addEventListener("change",function(ev){
   var t=ev.target;
   if(t.id==="sh"){var d=t.dataset.d,v=t.value.trim();S.sl[d]=S.sl[d]||{};if(v)S.sl[d].h=v;else delete S.sl[d].h;save()}
   else if(t.id==="wq"){S.q=t.value;save()}
+  else if(t.id==="dqwt"){setWater(t.dataset.d,t.value)}
+  else if(t.classList&&t.classList.contains("mealt")){setMeal(t.dataset.d,t.dataset.k,t.value)}
+  else if(t.id==="dsum"){var sd=t.dataset.d,sv=t.value;if(sv.trim())S.sum[sd]=sv;else delete S.sum[sd];save()}
   else if(t.id==="rf"&&t.files&&t.files[0]){var rd=new FileReader();rd.onload=function(){restoreFrom(String(rd.result))};rd.readAsText(t.files[0])}
   else if(t.id==="tsel"){var cu=$("#tcustom");if(cu)cu.style.display=t.value==="custom"?"block":"none"}
 });
+var dsT=null;
+document.addEventListener("input",function(ev){var t=ev.target;if(t.id==="dqwt"){setWater(t.dataset.d,t.value);return}if(t.classList&&t.classList.contains("mealt")){setMeal(t.dataset.d,t.dataset.k,t.value);return}if(t.id==="dsum"){var d=t.dataset.d,v=t.value;clearTimeout(dsT);dsT=setTimeout(function(){if(v.trim())S.sum[d]=v;else delete S.sum[d];save()},400)}});
 document.addEventListener("submit",function(ev){
   ev.preventDefault();var f=ev.target;
   if(f.id==="ef"){var ae=document.activeElement;if(ae&&(ae.id==="nt"||ae.id==="nc")){if(ae.id==="nt")addTag();else addCope();return}saveEntry(f);return}
-  if(f.id==="sf"){["signs","trig","away","steps","words","people","reasons","nxt","psy"].forEach(function(n){S.safe[n]=f.elements[n].value});save();closeSheet();render();toast("Safety plan saved");return}
+  if(f.id==="sf"){SFF.forEach(function(n){S.safe[n]=f.elements[n].value});save();closeSheet();render();toast("Safety plan saved");return}
   if(f.id==="pf"){var pd=f.elements.pd.value;if(!pd){toast("Pick a date first");return}if(S.dates.indexOf(pd)<0)S.dates.push(pd);cur=pd;tab="today";save();closeSheet();render();return}
   var kind=f.dataset.f,v=f.elements.t.value.trim();if(!v)return;
   if(kind==="m")S.m.push({id:uid(),text:v,from:cur});
@@ -677,7 +733,8 @@ document.addEventListener("click",function(ev){
   else if(b.dataset.g==="tp"){gS=Math.max(0,gS-1);stDraw()}
   else if(b.dataset.g==="tr"){gS=0;stDraw()}
 });
-function foot(){return '<p class="foot">© 2026 jayvengozon™ · Daybook</p>'}
+var VERSION="1.11.1";
+function foot(){return '<p class="foot">© 2026 jayvengozon™ · Daybook v'+VERSION+'</p>'}
 function lockHtml(){var arm=armed==="pinoff";return '<h2>App lock</h2>'+(P?'<p class="muted">PIN is on. Daybook asks for it when you reopen the app after 30 seconds away.</p><div class="add"><button class="btn ghost" data-a="pinchg">Change PIN</button><button class="btn'+(arm?'':' ghost')+'" data-a="pinoff">'+(arm?'Tap again to turn off':'Turn off PIN')+'</button></div>':'<p class="muted">Protect your journal with a 4-digit PIN. It keeps casual snoopers out. It does not encrypt your data.</p><div class="add"><button class="btn" data-a="pinset">Set a 4-digit PIN</button></div>')}
 var P=null,PK="daybook1pin",TK="daybook1try",ent="",mode="",tmp="",lockMsg="",forgot=false,hideAt=0;
 try{P=JSON.parse(localStorage.getItem(PK))}catch(e){}
