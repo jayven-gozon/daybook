@@ -3,6 +3,11 @@
 All notable changes to Daybook, newest first.
 Daybook © 2026 jayvengozon™. Dates before 12 Nov 2026 were not recorded.
 
+## 1.12.0 (2026-11-12)
+### Changed
+- Appearance now offers three backgrounds: **Dark** (a true dark navy), **Gray** (the original gray-blue), and **White**. Dark is the new default, and no longer depends on your phone's dark-mode setting.
+- If you had previously used the "Dark" button, which showed the gray look, your app now shows the real dark theme. Choose Gray to get the old look back.
+
 ## 1.11.2 (2026-11-12)
 ### Fixed
 - The Home Screen app now picks up new versions reliably: it asks the server for the latest files each time it opens (falling back to its saved copy when offline), and no longer installs a stale copy from the browser's cache.
