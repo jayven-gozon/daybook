@@ -3,6 +3,10 @@
 All notable changes to Daybook, newest first.
 Daybook © 2026 jayvengozon™. Dates before 12 Nov 2026 were not recorded.
 
+## 1.13.1 (2026-11-12)
+### Removed
+- The "From the … handout of your session at Kamalayan Psychological Services" credit line at the bottom of each calm-down guide (Box breathing, Progressive muscle relaxation, Sensory grounding, STOP, Mindful walking, Pomodoro, Sleep hygiene).
+
 ## 1.13.0 (2026-11-12)
 ### Added
 - Export your summary as a styled Word document (.docx): More → This week → Export .docx. Choose the last 7, 14, or 30 days, and either summary only or summary plus entries.

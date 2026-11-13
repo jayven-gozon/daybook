@@ -534,7 +534,6 @@ function pmrHtml(tl){
    +'<h2>The six areas</h2><ol>'+PG.map(function(g){return '<li><b>'+g.n+'.</b> Tense: '+g.t.charAt(0).toLowerCase()+g.t.slice(1)+' Hold 5 to 10 seconds. Relax: '+g.r.charAt(0).toLowerCase()+g.r.slice(1)+'</li>'}).join("")+'</ol>'
    +'<p class="muted">After the last area, lie or sit quietly, take deep breaths, and enjoy the feeling of relaxation.</p>'
    +'<p class="muted">Squeeze firmly but not painfully, and keep breathing. Skip any area that hurts or is injured.</p>'
-   +'<p class="muted">From the Quick Relaxation Boost handout of your session at Kamalayan Psychological Services.</p>'
 }
 function pmrDur(){return gPh==="scene"?10:gPh==="tense"?gHold:gPh==="relax"?10:0}
 function pmrPaint(){
@@ -591,7 +590,6 @@ function sgHtml(tl){
   return '<h1 class="serif" style="margin:6px 0 4px">'+esc(tl.t)+'</h1><p class="muted" style="margin:0">When emotions run high, it is harder to think clearly. This method helps you regain calm and focus on the present through your senses.</p>'
    +'<div id="stage" aria-live="polite" style="background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:20px 14px;margin:16px 0">'+sgStage()+'</div>'
    +'<h2>The five senses</h2><ol><li><b>Sight.</b> Identify five things you can see.</li><li><b>Sound.</b> Identify four things you can hear.</li><li><b>Touch.</b> Identify three things you can touch.</li><li><b>Smell.</b> Identify two things you can smell.</li><li><b>Taste.</b> Identify one thing you can taste.</li></ol>'
-   +'<p class="muted">From the Grounding handout of your session at Kamalayan Psychological Services.</p>'
 }
 function sgDraw(){var e=$("#stage");if(e)e.innerHTML=sgStage()}
 var ST=[{l:"S",n:"Stop!",d:"If you feel your emotions getting too big, take a moment to stop and pause."},{l:"T",n:"Take a break",d:"Relax and think. Step back from what’s happening. It’s okay to take your time."},{l:"O",n:"Observe",d:"Look around and notice what’s going on. Think about how you feel inside and what’s happening outside."},{l:"P",n:"Proceed",d:"Move forward carefully. Ask yourself: “What’s the best thing to do?” “What can help or hurt in this situation?” “What’s the best choice?”"}];
@@ -606,7 +604,6 @@ function stHtml(tl){
   return '<h1 class="serif" style="margin:6px 0 4px">'+esc(tl.t)+'</h1><p class="muted" style="margin:0">The STOP method helps you take a break when your emotions are strong. It gives you time to think before you act.</p>'
    +'<div id="stage" aria-live="polite" style="background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:20px 14px;margin:16px 0">'+stStage()+'</div>'
    +'<h2>The four steps</h2><ol>'+ST.map(function(x){return '<li><b>'+x.l+': '+x.n+'</b> '+esc(x.d)+'</li>'}).join("")+'</ol>'
-   +'<p class="muted">From the STOP handout of your session at Kamalayan Psychological Services.</p>'
 }
 function stDraw(){var e=$("#stage");if(e)e.innerHTML=stStage()}
 var MW=[
@@ -630,7 +627,6 @@ function mwHtml(tl){
   gS=0;
   return '<h1 class="serif" style="margin:6px 0 4px">'+esc(tl.t)+'</h1><p class="muted" style="margin:0">A slow walk that helps you notice the present moment. Choose a safe place and keep your eyes on where you are going. Read one step, do it, then tap Next.</p>'
    +'<div id="stage" aria-live="polite" style="background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:18px 14px;margin:16px 0">'+mwStage()+'</div>'
-   +'<p class="muted">From the Step-by-Step Guide in Mindful Walking handout of Kamalayan Psychological Services.</p>'
 }
 function mwDraw(){var e=$("#stage");if(e)e.innerHTML=mwStage()}
 
@@ -671,7 +667,6 @@ function pmHtml(tl){
    +'<p class="muted" style="margin:0 0 4px">Long break after four sessions</p><div style="display:flex;gap:8px">'+[15,20,30].map(function(v){return '<button type="button" class="btn'+(v===pmLong?'':' ghost')+'" data-g="lb" data-v="'+v+'" style="flex:1">'+v+' min</button>'}).join("")+'</div>'
    +'<h2>The five steps</h2><ol><li><b>Set goals and prioritize.</b> Define what you want to accomplish in each session.</li><li><b>Use a timer.</b> Work for 25 minutes without distractions.</li><li><b>Take a short break.</b> Rest for 5 minutes after each session.</li><li><b>Repeat the cycle.</b> After four sessions, take a longer break of 15 to 30 minutes.</li><li><b>Eliminate distractions.</b> Keep gadgets on silent and make your space quiet.</li></ol>'
    +'<p class="muted">Keep this page open while the timer runs. If you switch apps, the timer catches up when you return, but the sound may not play. Adjust the intervals to your comfort level.</p>'
-   +'<p class="muted">From the Mastering Time Management with Pomodoro Technique handout of Kamalayan Psychological Services.</p>'
 }
 
 var SH=[
@@ -699,7 +694,6 @@ function shHtml(tl){
   return '<h1 class="serif" style="margin:6px 0 4px">'+esc(tl.t)+'</h1><p class="muted" style="margin:0">Healthy habits and surroundings that support steady, good-quality sleep. Tap a habit to mark the ones you already practice or want to keep doing.</p>'
    +'<div id="shl" style="margin-top:12px">'+shList()+'</div>'
    +'<p class="muted">You can log your hours slept and energy each day in the Journal tab. If sleep problems continue, mention them to your therapist or psychiatrist.</p>'
-   +'<p class="muted">From the Sleep Hygiene handout of Kamalayan Psychological Services.</p>'
 }
 /* ---------- Word (.docx) export ---------- */
 var CRCT=null;
@@ -863,7 +857,6 @@ function openGuide(i){
      +'<div style="text-align:center"><div id="bp" class="serif" style="font-size:26px" role="status" aria-live="polite">Ready</div><div id="bc" style="font-size:46px;font-weight:700;min-height:58px"></div><p id="bs" class="muted" style="min-height:44px;margin:0"></p><p id="br" class="muted" style="min-height:22px;margin:0 0 8px"></p><button id="bgo" class="btn" data-g="go" style="min-width:170px">Start</button></div>'
      +'<h2>The four steps</h2><ol><li><b>Inhale.</b> Breathe in slowly and deeply through your nose for a count of 4. Picture drawing the first side of a square.</li><li><b>Hold.</b> Hold your breath for a count of 4. Draw the second side.</li><li><b>Exhale.</b> Breathe out slowly through your mouth for a count of 4. Draw the third side.</li><li><b>Hold.</b> Hold your breath for a count of 4. Draw the fourth side.</li></ol>'
      +'<p class="muted">Repeat for about 2 minutes. If you feel dizzy or lightheaded, stop and breathe normally. Practicing when you are calm makes it easier to use when you are stressed.</p>'
-     +'<p class="muted">From the Square Breathing Exercise handout of your session at Kamalayan Psychological Services.</p>'
   }else if(/mindful walking/i.test(tl.t)){h+=mwHtml(tl)
   }else if(/pomodoro/i.test(tl.t)){h+=pmHtml(tl)
   }else if(/sleep hygiene/i.test(tl.t)){h+=shHtml(tl)
@@ -896,7 +889,7 @@ document.addEventListener("click",function(ev){
   else if(b.dataset.g==="tp"){gS=Math.max(0,gS-1);stDraw()}
   else if(b.dataset.g==="tr"){gS=0;stDraw()}
 });
-var VERSION="1.13.0";
+var VERSION="1.13.1";
 function foot(){return '<p class="foot">© 2026 jayvengozon™ · Daybook v'+VERSION+'</p>'}
 function lockHtml(){var arm=armed==="pinoff";return '<h2>App lock</h2>'+(P?'<p class="muted">PIN is on. Daybook asks for it when you reopen the app after 30 seconds away.</p><div class="add"><button class="btn ghost" data-a="pinchg">Change PIN</button><button class="btn'+(arm?'':' ghost')+'" data-a="pinoff">'+(arm?'Tap again to turn off':'Turn off PIN')+'</button></div>':'<p class="muted">Protect your journal with a 4-digit PIN. It keeps casual snoopers out. It does not encrypt your data.</p><div class="add"><button class="btn" data-a="pinset">Set a 4-digit PIN</button></div>')}
 var P=null,PK="daybook1pin",TK="daybook1try",ent="",mode="",tmp="",lockMsg="",forgot=false,hideAt=0;

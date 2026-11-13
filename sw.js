@@ -1,4 +1,4 @@
-var C="daybook-v28",F=["./","index.html","manifest.webmanifest","icon-180.png","icon-192.png","icon-512.png"];
+var C="daybook-v29",F=["./","index.html","manifest.webmanifest","icon-180.png","icon-192.png","icon-512.png"];
 self.addEventListener("install",function(e){
   e.waitUntil(caches.open(C).then(function(c){
     return Promise.all(F.map(function(u){
