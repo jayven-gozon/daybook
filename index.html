@@ -150,7 +150,7 @@ if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){
 function showUpd(){if($("#upd"))return;var b=document.createElement("div");b.id="upd";b.setAttribute("role","status");b.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:35;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between";b.innerHTML='<span>A new version is ready.</span><button type="button" class="btn" data-u="reload" style="min-height:36px;padding:6px 14px">Reload</button>';document.body.appendChild(b)}
 document.addEventListener("click",function(ev){var b=ev.target.closest&&ev.target.closest("[data-u]");if(b&&b.dataset.u==="reload")location.reload()});
 function save(){var j=JSON.stringify(S);try{localStorage.setItem(K,j)}catch(e){toast("Couldn’t save on this device")}idbPut(j)}
-function norm(){if(!Array.isArray(S.dates))S.dates=[];if(!Array.isArray(S.tags))S.tags=["work","sleep","family","alone","health","money"];if(!Array.isArray(S.cope))S.cope=["Deep breathing","Went for a walk","Talked to someone","Listened to music","Rested","Wrote it down"];if(!S.mood||typeof S.mood!=="object")S.mood={};if(!S.safe||typeof S.safe!=="object")S.safe={signs:"",steps:"",people:"",reasons:""};if(!Array.isArray(S.safe.contacts))S.safe.contacts=[];if(!Array.isArray(S.safe.tools))S.safe.tools=defaultTools();if((S.safe.tv||0)<2){var hv=S.safe.tools.map(function(x){return x.t});defaultTools().slice(5).forEach(function(x){if(hv.indexOf(x.t)<0)S.safe.tools.push(x)});S.safe.tv=2}if(!S.sl||typeof S.sl!=="object")S.sl={};if(typeof S.q!=="string")S.q="";if(S.theme!=="white"&&S.theme!=="gray")S.theme="dark";if(!S.sum||typeof S.sum!=="object")S.sum={};if(!S.dq||typeof S.dq!=="object")S.dq={}}
+function norm(){if(!Array.isArray(S.dates))S.dates=[];if(!Array.isArray(S.tags))S.tags=["work","sleep","family","alone","health","money"];if(!Array.isArray(S.cope))S.cope=["Deep breathing","Went for a walk","Talked to someone","Listened to music","Rested","Wrote it down"];if(!S.mood||typeof S.mood!=="object")S.mood={};if(!S.safe||typeof S.safe!=="object")S.safe={signs:"",steps:"",people:"",reasons:""};if(!Array.isArray(S.safe.contacts))S.safe.contacts=[];if(!Array.isArray(S.safe.tools))S.safe.tools=defaultTools();if((S.safe.tv||0)<2){var hv=S.safe.tools.map(function(x){return x.t});defaultTools().filter(function(x){return ["Mindful walking","Pomodoro technique","Sleep hygiene"].indexOf(x.t)>=0}).forEach(function(x){if(hv.indexOf(x.t)<0)S.safe.tools.push(x)});S.safe.tv=2}if((S.safe.tv||0)<3){S.safe.tools=S.safe.tools.filter(function(x){return x.t!=="When irritation builds while caring for the baby"});S.safe.tv=3}if(!S.sl||typeof S.sl!=="object")S.sl={};if(typeof S.q!=="string")S.q="";if(S.theme!=="white"&&S.theme!=="gray")S.theme="dark";if(!S.sum||typeof S.sum!=="object")S.sum={};if(!S.dq||typeof S.dq!=="object")S.dq={}}
 var $=function(s){return document.querySelector(s)};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
 var pad=function(n){return(n<10?"0":"")+n};
@@ -290,7 +290,7 @@ function weekSummary(){
   return ["Last 7 days","Average mood: "+av(mo)+" / 5 ("+mo.length+" days logged)","Average sleep: "+av(sl)+" hours, energy "+av(en)+" / 5","Emotion entries: "+emo.length+", average intensity "+av(num(emo,"intensity"))+" / 10","Activities: "+act.length+", enjoyment "+av(num(act,"pl"))+" / 10, achievement "+av(num(act,"ma"))+" / 10","Top triggers: "+topN(tg),"Coping used most: "+topN(cp),"Checklist done: "+(tot?Math.round(100*ok/tot)+"%":"–")].concat(dqLines(days))
 }
 function weeklyHtml(){
-  return '<h2>This week</h2><div class="card" style="display:block;cursor:default;border-left-color:var(--acc)">'+weekSummary().slice(1).map(function(l){return '<p>'+esc(l)+'</p>'}).join("")+'</div><label for="wq">Questions or notes for my therapist or psychiatrist</label><textarea id="wq">'+esc(S.q)+'</textarea><div class="add"><button class="btn ghost" data-a="wcopy">Copy summary</button></div>'
+  return '<h2>This week</h2><div class="card" style="display:block;cursor:default;border-left-color:var(--acc)">'+weekSummary().slice(1).map(function(l){return '<p>'+esc(l)+'</p>'}).join("")+'</div><label for="wq">Questions or notes for my therapist or psychiatrist</label><textarea id="wq">'+esc(S.q)+'</textarea><div class="add"><button class="btn ghost" data-a="wcopy">Copy summary</button><button class="btn" data-a="exp">Export .docx</button></div>'
 }
 var mo={K:false,T:false,C:false};
 function sec(k,title,n,body){var o=mo[k];return '<button type="button" class="sec" data-a="mo" data-id="'+k+'" aria-expanded="'+o+'"><span>'+title+' <span class="muted">('+n+')</span></span><span>'+(o?'▴':'▾')+'</span></button>'+(o?'<div class="secb">'+body+'</div>':'')}
@@ -355,7 +355,6 @@ function defaultTools(){return [
  {t:"Progressive muscle relaxation",b:"Tense then release each muscle group, holding 5 to 10 seconds: hands and forearms, upper arms, forehead, shoulders, stomach, legs and feet."},
  {t:"Sensory grounding",b:"Identify 5 things you can see, 4 you can hear, 3 you can touch, 2 you can smell, and 1 you can taste."},
  {t:"STOP technique",b:"Stop. Take a break. Observe what is going on inside you and around you. Proceed carefully with the best choice."},
- {t:"When irritation builds while caring for the baby",b:"Pause and take a slow breath. If it is getting hard to manage, place your baby safely in the playpen, step away briefly, and use grounding until you feel calmer before returning to caregiving."},
  {t:"Mindful walking",b:"Walk slowly in a quiet, safe place. Notice your feet touching the ground, your breath, and the sounds, sights, and smells around you. When your mind wanders, gently bring it back."},
  {t:"Pomodoro technique",b:"Work or study for 25 minutes without distractions, then rest for 5. After four rounds, take a longer break of 15 to 30 minutes."},
  {t:"Sleep hygiene",b:"Healthy habits for better sleep: a steady schedule, a calming bedtime routine, less screen light before bed, and a dark, quiet, cool room."}]}
@@ -373,8 +372,9 @@ function sfContacts(){
 }
 function pgOpen(title,back,sub){return '<div class="pg" role="dialog" aria-label="'+esc(title)+'"><div class="pgh"><button type="button" class="lnk bk" '+back+'>‹ Back</button><div class="serif pgt">'+esc(title)+'</div><span></span></div>'+(sub?'<div class="pgsub">'+sub+'</div>':'')+'<div class="pgb">'}
 function drawSheet(){
+  if(sheet.exp){$("#sheetHost").innerHTML=pgOpen("Export summary",'data-a="shut2"',"")+expBody()+'</div><div class="pgf"><div class="acts"><button type="button" class="btn ghost" data-a="shut2">Cancel</button><button type="button" class="btn" data-a="expgo">Create document</button></div></div></div>';return}
   if(sheet.dq){var od=$("#sheetHost .pgb"),sd=od?od.scrollTop:0;$("#sheetHost").innerHTML=pgOpen("Daily check-in",'data-a="shut2"','<span class="muted">'+esc(fmt(sheet.d,{weekday:"long",month:"short",day:"numeric"}))+'</span>')+dqBody(sheet.d)+'</div><div class="pgf"><div class="acts"><button class="btn" data-a="shut2">Done</button></div></div></div>';var nd=$("#sheetHost .pgb");if(nd)nd.scrollTop=sd;return}
-  if(sheet.safe){var sf=S.safe,old=$("#sheetHost .pgb"),st=old?old.scrollTop:0;$("#sheetHost").innerHTML=pgOpen("My safety plan",'data-a="shut3"',"")+'<p class="muted" style="margin-top:0">Fill this in with your therapist or psychiatrist when you can. Open it whenever thoughts of self-harm come up.</p><div class="acts" style="margin-top:8px"><a class="btn" style="display:grid;place-items:center;text-decoration:none" href="tel:1553">Call NCMH 1553</a><a class="btn ghost" style="display:grid;place-items:center;text-decoration:none" href="tel:911">Call 911</a></div><p class="muted">NCMH also: 0917-899-8727. Please check that these numbers are still current.</p><p class="muted" style="margin-bottom:0">Tap a name to call that person.</p>'+sfContacts()+toolkit()+'<form id="sf">'+area("My warning signs","signs",sf.signs)+areaP("What sets off my irritation or panic","trig",sf.trig,"For example: feeling overwhelmed, a tense talk with my wife, work pressure")+areaP("When it is building: my step-away plan","away",sf.away,"Pause, STOP technique, make my baby safe, step away briefly, ground myself, then return")+area("Things I can do on my own","steps",sf.steps)+area("Notes on who can be with me or help","people",sf.people)+area("Why staying safe matters to me","reasons",sf.reasons)+dtF("Next therapy session","nxt",sf.nxt)+dtF("Psychiatric consultation","psy",sf.psy)+'</form></div><div class="pgf"><div class="acts"><button type="button" class="btn ghost" data-a="shut3">Close</button><button class="btn" form="sf">Save</button></div></div></div>';var nw=$("#sheetHost .pgb");if(nw)nw.scrollTop=st;return}
+  if(sheet.safe){var sf=S.safe,old=$("#sheetHost .pgb"),st=old?old.scrollTop:0;$("#sheetHost").innerHTML=pgOpen("My safety plan",'data-a="shut3"',"")+'<p class="muted" style="margin-top:0">Fill this in with your therapist or psychiatrist when you can. Open it whenever thoughts of self-harm come up.</p><div class="acts" style="margin-top:8px"><a class="btn" style="display:grid;place-items:center;text-decoration:none" href="tel:1553">Call NCMH 1553</a><a class="btn ghost" style="display:grid;place-items:center;text-decoration:none" href="tel:911">Call 911</a></div><p class="muted">NCMH also: 0917-899-8727. Please check that these numbers are still current.</p><p class="muted" style="margin-bottom:0">Tap a name to call that person.</p>'+sfContacts()+toolkit()+'<form id="sf">'+area("My warning signs","signs",sf.signs)+areaP("What sets off my irritation or panic","trig",sf.trig,"For example: feeling overwhelmed, a tense talk with my wife, work pressure")+areaP("When it is building: my step-away plan","away",sf.away,"For example: pause, take a slow breath, step away briefly, use grounding, then return")+area("Things I can do on my own","steps",sf.steps)+area("Notes on who can be with me or help","people",sf.people)+area("Why staying safe matters to me","reasons",sf.reasons)+dtF("Next therapy session","nxt",sf.nxt)+dtF("Psychiatric consultation","psy",sf.psy)+'</form></div><div class="pgf"><div class="acts"><button type="button" class="btn ghost" data-a="shut3">Close</button><button class="btn" form="sf">Save</button></div></div></div>';var nw=$("#sheetHost .pgb");if(nw)nw.scrollTop=st;return}
   if(sheet.pick){$("#sheetHost").innerHTML=pgOpen("Add a date",'data-a="shut2"',"")+'<form id="pf"><label for="f_pd">Pick a date</label><input type="date" id="f_pd" name="pd" value="'+today+'"></form></div><div class="pgf"><div class="acts"><button type="button" class="btn ghost" data-a="shut2">Cancel</button><button class="btn" form="pf">Add date</button></div></div></div>';return}var s=sheet,x=s.x,e=s.type==="emotion";
   var h=pgOpen(s.id?(e?"Edit emotion":"Edit activity"):"New entry",'data-a="shut2"','<div class="seg">'+(s.id?'':'<button data-a="seg" data-id="emotion" class="'+(e?'on':'')+'">Emotion</button><button data-a="seg" data-id="activity" class="'+(!e?'on':'')+'">Activity</button>')+(s.id?'<button class="on" disabled>'+(e?'Emotion':'Activity')+'</button>':'')+'</div>')+'<form id="ef">';
   if(e){
@@ -445,6 +445,10 @@ document.addEventListener("click",function(ev){
   else if(a==="pinoff"){if(armed==="pinoff"){dropPin();armed=null;toast("PIN turned off")}else armed="pinoff"}
   else if(a==="chk"){if(window.__reg){window.__reg.update().then(function(){toast("Checked. If an update is found, a Reload bar will appear.")},function(){toast("Couldn’t check. Are you online?")})}else toast("Updates aren’t available in this view");return}
   else if(a==="theme"){S.theme=id==="white"?"white":id==="gray"?"gray":"dark";save()}
+  else if(a==="exp"){sheet={exp:true,n:7,det:false};drawSheet();return}
+  else if(a==="expn"){sheet.n=+id;drawSheet();return}
+  else if(a==="expd"){sheet.det=id==="1";drawSheet();return}
+  else if(a==="expgo"){var en2=sheet.n,ed2=sheet.det;try{exportDocx(en2,ed2);toast("Document ready")}catch(e){toast("Couldn’t create the document")}closeSheet();render();return}
   else if(a==="dq"){sheet={dq:true,d:cur};drawSheet();return}
   else if(a==="dqy"){var dd=sheet.d,dr=S.dq[dd]=S.dq[dd]||{},dv=+t.dataset.v;if(dr[id]===dv)delete dr[id];else dr[id]=dv;if(id==="cf"){if(dr.cf===1){if(!dr.cfn)dr.cfn=1}else delete dr.cfn}if(id==="al"){if(dr.al===1){if(!dr.aln)dr.aln=1}else delete dr.aln}if(id==="mb"||id==="ml"||id==="md"){if(dr[id]!==1)delete dr[id+"t"]}save();drawSheet();return}
   else if(a==="dqw"){var wr=S.dq[sheet.d]=S.dq[sheet.d]||{};wr.wt=Math.min(30,Math.max(0,(wr.wt||0)+(+t.dataset.v)));save();drawSheet();return}
@@ -697,6 +701,155 @@ function shHtml(tl){
    +'<p class="muted">You can log your hours slept and energy each day in the Journal tab. If sleep problems continue, mention them to your therapist or psychiatrist.</p>'
    +'<p class="muted">From the Sleep Hygiene handout of Kamalayan Psychological Services.</p>'
 }
+/* ---------- Word (.docx) export ---------- */
+var CRCT=null;
+function crc32(u){if(!CRCT){CRCT=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;CRCT[n]=c>>>0}}var c2=0xFFFFFFFF;for(var i=0;i<u.length;i++)c2=CRCT[(c2^u[i])&255]^(c2>>>8);return(c2^0xFFFFFFFF)>>>0}
+function zipStore(files){
+  var enc=new TextEncoder(),chunks=[],cen=[],off=0,now=new Date();
+  var dt=((now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1))&0xFFFF,dd=(((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate())&0xFFFF;
+  files.forEach(function(f){
+    var nm=enc.encode(f.n),d=enc.encode(f.t),crc=crc32(d),sz=d.length;
+    var lh=new Uint8Array(30+nm.length),v=new DataView(lh.buffer);
+    v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0x0800,true);v.setUint16(8,0,true);v.setUint16(10,dt,true);v.setUint16(12,dd,true);v.setUint32(14,crc,true);v.setUint32(18,sz,true);v.setUint32(22,sz,true);v.setUint16(26,nm.length,true);v.setUint16(28,0,true);lh.set(nm,30);
+    chunks.push(lh,d);
+    var ch=new Uint8Array(46+nm.length),w=new DataView(ch.buffer);
+    w.setUint32(0,0x02014b50,true);w.setUint16(4,20,true);w.setUint16(6,20,true);w.setUint16(8,0x0800,true);w.setUint16(10,0,true);w.setUint16(12,dt,true);w.setUint16(14,dd,true);w.setUint32(16,crc,true);w.setUint32(20,sz,true);w.setUint32(24,sz,true);w.setUint16(28,nm.length,true);w.setUint16(30,0,true);w.setUint16(32,0,true);w.setUint16(34,0,true);w.setUint16(36,0,true);w.setUint32(38,0,true);w.setUint32(42,off,true);ch.set(nm,46);
+    cen.push(ch);off+=lh.length+sz
+  });
+  var cs=0;cen.forEach(function(c){cs+=c.length});
+  var end=new Uint8Array(22),e=new DataView(end.buffer);
+  e.setUint32(0,0x06054b50,true);e.setUint16(4,0,true);e.setUint16(6,0,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);e.setUint16(20,0,true);
+  return new Blob(chunks.concat(cen,[end]),{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"})
+}
+var NV="0D1B2A",NV2="1B263B",SL="415A77",SL2="778DA9",PL="E0E1DD",PL2="F3F4F2",CW=9638;
+function xc(t){return String(t).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function rn(t,o){o=o||{};var p="";if(o.f)p+='<w:rFonts w:ascii="'+o.f+'" w:hAnsi="'+o.f+'" w:cs="'+o.f+'"/>';if(o.b)p+="<w:b/>";if(o.i)p+="<w:i/>";if(o.c)p+='<w:color w:val="'+o.c+'"/>';if(o.sp)p+='<w:spacing w:val="'+o.sp+'"/>';if(o.s)p+='<w:sz w:val="'+o.s+'"/><w:szCs w:val="'+o.s+'"/>';return"<w:r>"+(p?"<w:rPr>"+p+"</w:rPr>":"")+'<w:t xml:space="preserve">'+xc(t)+"</w:t></w:r>"}
+function pa(runs,o){o=o||{};var p="";if(o.st)p+='<w:pStyle w:val="'+o.st+'"/>';if(o.keep)p+="<w:keepNext/>";p+='<w:spacing w:before="'+(o.bf||0)+'" w:after="'+(o.af===undefined?60:o.af)+'"/>';if(o.al)p+='<w:jc w:val="'+o.al+'"/>';return"<w:p><w:pPr>"+p+"</w:pPr>"+(Array.isArray(runs)?runs.join(""):runs)+"</w:p>"}
+function tc(w,content,o){o=o||{};var p='<w:tcW w:w="'+w+'" w:type="dxa"/>';if(o.span)p+='<w:gridSpan w:val="'+o.span+'"/>';if(o.fill)p+='<w:shd w:val="clear" w:color="auto" w:fill="'+o.fill+'"/>';var mt=o.mt===undefined?70:o.mt,ml=o.ml===undefined?110:o.ml;p+='<w:tcMar><w:top w:w="'+mt+'" w:type="dxa"/><w:left w:w="'+ml+'" w:type="dxa"/><w:bottom w:w="'+mt+'" w:type="dxa"/><w:right w:w="'+ml+'" w:type="dxa"/></w:tcMar><w:vAlign w:val="'+(o.va||"center")+'"/>';return"<w:tc><w:tcPr>"+p+"</w:tcPr>"+(content||pa(""))+"</w:tc>"}
+function tr(cells,o){o=o||{};return"<w:tr>"+(o.head||o.keep?"<w:trPr><w:cantSplit/>"+(o.head?"<w:tblHeader/>":"")+"</w:trPr>":"")+cells.join("")+"</w:tr>"}
+function tbl(widths,rows,line){
+  var tot=widths.reduce(function(a,b){return a+b},0),b=function(n,c,sz){return"<w:"+n+' w:val="single" w:sz="'+sz+'" w:space="0" w:color="'+c+'"/>'};
+  var bd=line==="white"?b("top","FFFFFF",24)+b("left","FFFFFF",24)+b("bottom","FFFFFF",24)+b("right","FFFFFF",24)+b("insideH","FFFFFF",24)+b("insideV","FFFFFF",24):line==="none"?"":b("top","D3D9E0",4)+b("bottom","D3D9E0",4)+b("insideH","E3E6EA",4);
+  return'<w:tbl><w:tblPr><w:tblW w:w="'+tot+'" w:type="dxa"/>'+(bd?"<w:tblBorders>"+bd+"</w:tblBorders>":"")+'<w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid>'+widths.map(function(w){return'<w:gridCol w:w="'+w+'"/>'}).join("")+"</w:tblGrid>"+rows.join("")+"</w:tbl>"
+}
+function h1(t){return pa(rn(t),{st:"Heading1"})}
+function h2(t){return pa(rn(t),{st:"Heading2"})}
+function dd2(d){return fmt(d,{weekday:"short",day:"numeric",month:"short"})}
+function avg(a,dp){return a.length?(a.reduce(function(x,y){return x+y},0)/a.length).toFixed(dp===undefined?1:dp):"–"}
+function topCount(m){return Object.keys(m).sort(function(a,b){return m[b]-m[a]||(a<b?-1:1)}).slice(0,5)}
+function dotsMood(v){if(!v)return rn("–",{c:SL2});var col=v<=2?"B5533C":v===3?"C99A2E":"4F8A5B",s="";for(var i=1;i<=5;i++)s+=i<=v?"●":"○";return rn(s,{c:col,s:20})+rn("  "+v,{c:SL,s:16})}
+function buildDocx(n,det){
+  var days=[];for(var i=n-1;i>=0;i--)days.push(shift(today,-i));
+  var es=S.e.filter(function(x){return days.indexOf(x.date)>=0}),emo=es.filter(function(x){return x.type==="emotion"}),act=es.filter(function(x){return x.type==="activity"});
+  var mo=[],sl=[],en=[],wt=[],cups=0,cd=0,drinks=0,dd0=0,cLogged=0,ok=0,tot=0;
+  days.forEach(function(d){
+    if(S.mood[d])mo.push(S.mood[d]);var s=S.sl[d]||{},h=parseFloat(s.h);if(!isNaN(h))sl.push(h);if(s.en)en.push(s.en);
+    var r=S.dq[d]||{};if(typeof r.wt==="number")wt.push(r.wt);if(r.cf===1){cups+=r.cfn||1;cd++}if(r.cf===0||r.cf===1)cLogged++;if(r.al===1){drinks+=r.aln||1;dd0++}
+    var c=stats(d);ok+=c.ok;tot+=c.tot
+  });
+  var num=function(a,k){return a.filter(function(x){return x[k]!==undefined&&x[k]!==""}).map(function(x){return+x[k]})};
+  var tg={},cp={};es.forEach(function(x){(x.tags||[]).forEach(function(t){tg[t]=(tg[t]||0)+1})});
+  emo.forEach(function(x){S.cope.forEach(function(c){if(copeUsed(x,c))cp[c]=(cp[c]||0)+1})});
+  var gen=fmt(today,{day:"numeric",month:"long",year:"numeric"}),per=fmt(days[0],{day:"numeric",month:"short"})+" – "+fmt(days[days.length-1],{day:"numeric",month:"short",year:"numeric"});
+  var B=[];
+  // title banner
+  B.push(tbl([CW],[tr([tc(CW,
+    pa(rn("DAYBOOK",{b:1,c:SL2,s:18,sp:60}),{af:40})+pa(rn("Wellbeing summary",{f:"Georgia",c:"FFFFFF",s:60}),{af:60})+pa(rn(per+"  ·  last "+n+" days",{c:PL,s:22}),{af:20})+pa(rn("Generated "+gen,{c:SL2,s:18}),{af:0}),
+    {fill:NV,ml:360,mt:300})])],"none"));
+  B.push(pa("",{af:60}));
+  // at a glance
+  B.push(h1("At a glance"));
+  var cards=[
+    [avg(mo)+(mo.length?" / 5":""),"Average mood ("+mo.length+" days logged)"],
+    [avg(sl)+(sl.length?" h":""),"Average sleep"],
+    [avg(en)+(en.length?" / 5":""),"Average energy"],
+    [String(emo.length),"Emotion entries"+(emo.length?", avg strength "+avg(num(emo,"intensity"))+"/10":"")],
+    [avg(num(act,"pl"))+(num(act,"pl").length?" / 10":""),"Activity enjoyment ("+act.length+" activities)"],
+    [tot?Math.round(100*ok/tot)+"%":"–","Checklist items done"],
+    [avg(wt)+(wt.length?"":""),"Glasses of water per logged day"],
+    [cLogged?String(cups):"–","Cups of coffee ("+cd+" of "+cLogged+" logged days)"],
+    [String(drinks),"Alcoholic drinks ("+dd0+" days)"]
+  ],cw=[3212,3213,3213],rows=[];
+  for(var r0=0;r0<3;r0++){rows.push(tr([0,1,2].map(function(c){var k=cards[r0*3+c];return tc(cw[c],pa(rn(k[0],{f:"Georgia",c:NV,s:40}),{af:20})+pa(rn(k[1],{c:SL,s:17}),{af:0}),{fill:PL,ml:180,mt:150})}),{keep:1}))}
+  B.push(tbl(cw,rows,"white"));
+  B.push(pa("",{af:40}));
+  // day by day
+  B.push(h1("Day by day"));
+  var W=[1700,1500,950,950,950,950,950,1688],H=["Date","Mood","Sleep (h)","Energy","Water","Coffee","Alcohol","Meals"],drs=[];
+  drs.push(tr(H.map(function(t,i){return tc(W[i],pa(rn(t,{b:1,c:"FFFFFF",s:17}),{af:0,al:i>1?"center":"left"}),{fill:NV2})}),{head:1}));
+  days.forEach(function(d,i){
+    var s=S.sl[d]||{},r=S.dq[d]||{},fill=i%2?"FFFFFF":PL2,mealsAns=["mb","ml","md"].filter(function(k){return r[k]===0||r[k]===1}),eaten=["mb","ml","md"].filter(function(k){return r[k]===1}).length;
+    var cell=function(i2,txt){return tc(W[i2],pa(rn(txt,{c:txt==="–"?SL2:NV2,s:18}),{af:0,al:"center"}),{fill:fill})};
+    drs.push(tr([tc(W[0],pa(rn(dd2(d),{c:NV2,s:18}),{af:0}),{fill:fill}),tc(W[1],pa(dotsMood(S.mood[d]),{af:0}),{fill:fill}),
+      cell(2,s.h?String(s.h):"–"),cell(3,s.en?s.en+" / 5":"–"),cell(4,typeof r.wt==="number"?String(r.wt):"–"),
+      cell(5,r.cf===1?String(r.cfn||1):r.cf===0?"0":"–"),cell(6,r.al===1?String(r.aln||1):r.al===0?"0":"–"),cell(7,mealsAns.length?eaten+" / 3":"–")],{keep:1}))
+  });
+  B.push(tbl(W,drs,"lines"));
+  B.push(pa(rn("Mood: 1 (low) to 5 (good). Energy: 1 (drained) to 5 (energized). Dashes mean no answer was logged.",{i:1,c:SL2,s:16}),{bf:60,af:60}));
+  // patterns
+  B.push(h1("Patterns"));
+  var lst=function(m,empty){var k=topCount(m);return k.length?k.map(function(x){return pa(rn(x,{c:NV2,s:20})+rn("   "+m[x]+"×",{c:SL,s:18}),{af:40})}).join(""):pa(rn(empty,{i:1,c:SL2,s:18}),{af:0})};
+  B.push(tbl([4819,4819],[tr([tc(4819,pa(rn("Top triggers and tags",{b:1,c:SL,s:19}),{af:80})+lst(tg,"No tags in this period."),{fill:PL2,va:"top",ml:180,mt:130}),tc(4819,pa(rn("Coping that helped",{b:1,c:SL,s:19}),{af:80})+lst(cp,"No coping options recorded."),{fill:PL2,va:"top",ml:180,mt:130})])],"white"));
+  B.push(pa("",{af:40}));
+  // details
+  if(det){
+    var sorted=function(a){return a.slice().sort(function(x,y){return(x.date+(x.time||""))<(y.date+(y.time||""))?-1:1})};
+    var tcell=function(w,t,fill,o2){return tc(w,String(t||"").split("\n").map(function(l,j){return pa(rn(l||"–",{c:l?NV2:SL2,s:17}),{af:j?0:0})}).join("")||pa(""),{fill:fill,va:"top"})};
+    if(emo.length){
+      B.push(h1("Emotion log"));
+      var EW=[1450,800,1700,850,2100,2738],er=[tr(["Date","Time","Emotion","Strength","What helped","Notes"].map(function(t,i){return tc(EW[i],pa(rn(t,{b:1,c:"FFFFFF",s:17}),{af:0}),{fill:NV2})}),{head:1})];
+      sorted(emo).forEach(function(x,i){var f=i%2?"FFFFFF":PL2,helped=((x.cope||[]).join(", ")+(x.handled?((x.cope&&x.cope.length?"\n":"")+x.handled):"")),notes=[x.details,x.notes].filter(Boolean).join("\n");
+        er.push(tr([tcell(EW[0],dd2(x.date),f),tcell(EW[1],x.time,f),tcell(EW[2],x.emotion,f),tcell(EW[3],x.intensity?x.intensity+" / 10":"",f),tcell(EW[4],helped,f),tcell(EW[5],notes,f)],{keep:1}))});
+      B.push(tbl(EW,er,"lines"));B.push(pa("",{af:40}))
+    }
+    if(act.length){
+      B.push(h1("Activity log"));
+      var AW=[1450,800,2500,1800,1100,1988],ar=[tr(["Date","Time","Activity","How I felt","Enjoy / achieve","Notes"].map(function(t,i){return tc(AW[i],pa(rn(t,{b:1,c:"FFFFFF",s:17}),{af:0}),{fill:NV2})}),{head:1})];
+      sorted(act).forEach(function(x,i){var f=i%2?"FFFFFF":PL2;ar.push(tr([tcell(AW[0],dd2(x.date),f),tcell(AW[1],x.time,f),tcell(AW[2],x.what,f),tcell(AW[3],x.felt,f),tcell(AW[4],(x.pl||x.ma)?(x.pl||"–")+" / "+(x.ma||"–"):"",f),tcell(AW[5],x.notes,f)],{keep:1}))});
+      B.push(tbl(AW,ar,"lines"));B.push(pa("",{af:40}))
+    }
+    var withSum=days.filter(function(d){return S.sum[d]});
+    if(withSum.length){B.push(h1("My notes on each day"));withSum.forEach(function(d){B.push(pa(rn(dd2(d),{f:"Georgia",c:SL,s:22}),{st:"Heading2"}));String(S.sum[d]).split("\n").forEach(function(l){B.push(pa(rn(l,{c:NV2,s:21}),{af:60}))})})}
+    // meal notes
+    var meals=[];days.forEach(function(d){var r=S.dq[d]||{};[["mbt","Breakfast"],["mlt","Lunch"],["mdt","Dinner"]].forEach(function(k){if(r[k[0]])meals.push([d,k[1],r[k[0]]])})});
+    if(meals.length){B.push(h1("What I ate"));var MW2=[1700,1500,6438],mr=[tr(["Date","Meal","What I ate"].map(function(t,i){return tc(MW2[i],pa(rn(t,{b:1,c:"FFFFFF",s:17}),{af:0}),{fill:NV2})}),{head:1})];meals.forEach(function(m,i){var f=i%2?"FFFFFF":PL2;mr.push(tr([tcell(MW2[0],dd2(m[0]),f),tcell(MW2[1],m[1],f),tcell(MW2[2],m[2],f)],{keep:1}))});B.push(tbl(MW2,mr,"lines"));B.push(pa("",{af:40}))}
+  }
+  // appointment questions
+  if(S.q&&S.q.trim()){B.push(h1("Questions for my appointment"));S.q.split("\n").forEach(function(l){if(l.trim())B.push(pa(rn(l,{c:NV2,s:21}),{af:60}))})}
+  // upcoming
+  var up=[];if(S.safe.nxt)up.push(["Next therapy session",S.safe.nxt]);if(S.safe.psy)up.push(["Psychiatric consultation",S.safe.psy]);
+  if(up.length){B.push(h1("Upcoming"));up.forEach(function(u){B.push(pa(rn(u[0]+":  ",{b:1,c:SL,s:21})+rn(fmt(u[1],{weekday:"long",day:"numeric",month:"long",year:"numeric"}),{c:NV2,s:21}),{af:60}))})}
+  B.push(pa(rn("This summary is based on information I entered myself in Daybook. It is not a medical record or a diagnosis.",{i:1,c:SL2,s:17}),{bf:240,af:0}));
+  var NS='xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  var sect='<w:sectPr><w:headerReference w:type="default" r:id="rId2"/><w:footerReference w:type="default" r:id="rId3"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr>';
+  var X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  var doc=X+"<w:document "+NS+"><w:body>"+B.join("")+sect+"</w:body></w:document>";
+  var styles=X+'<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri" w:eastAsia="Calibri"/><w:color w:val="'+NV2+'"/><w:sz w:val="21"/><w:szCs w:val="21"/><w:lang w:val="en-US"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="60" w:line="259" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>'
+   +'<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>'
+   +'<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:pBdr><w:bottom w:val="single" w:sz="8" w:space="4" w:color="'+SL2+'"/></w:pBdr><w:spacing w:before="360" w:after="140"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:rFonts w:ascii="Georgia" w:hAnsi="Georgia" w:cs="Georgia"/><w:color w:val="'+NV+'"/><w:sz w:val="30"/><w:szCs w:val="30"/></w:rPr></w:style>'
+   +'<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="200" w:after="60"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:rFonts w:ascii="Georgia" w:hAnsi="Georgia" w:cs="Georgia"/><w:color w:val="'+SL+'"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:style></w:styles>';
+  var header=X+"<w:hdr "+NS+'><w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="4" w:space="4" w:color="'+PL+'"/></w:pBdr><w:spacing w:after="0"/><w:jc w:val="right"/></w:pPr>'+rn("Daybook  ·  Wellbeing summary",{c:SL2,s:16})+"</w:p></w:hdr>";
+  var fld=function(c){return'<w:r><w:rPr><w:color w:val="'+SL2+'"/><w:sz w:val="16"/></w:rPr><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:rPr><w:color w:val="'+SL2+'"/><w:sz w:val="16"/></w:rPr><w:instrText xml:space="preserve"> '+c+' </w:instrText></w:r><w:r><w:rPr><w:color w:val="'+SL2+'"/><w:sz w:val="16"/></w:rPr><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:rPr><w:color w:val="'+SL2+'"/><w:sz w:val="16"/></w:rPr><w:t>1</w:t></w:r><w:r><w:rPr><w:color w:val="'+SL2+'"/><w:sz w:val="16"/></w:rPr><w:fldChar w:fldCharType="end"/></w:r>'};
+  var footer=X+"<w:ftr "+NS+'><w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="4" w:space="6" w:color="'+PL+'"/></w:pBdr><w:tabs><w:tab w:val="right" w:pos="'+CW+'"/></w:tabs><w:spacing w:after="0"/></w:pPr>'+rn("© 2026 jayvengozon™  ·  Daybook v"+VERSION+"  ·  Confidential",{c:SL2,s:16})+'<w:r><w:tab/></w:r>'+rn("Page ",{c:SL2,s:16})+fld("PAGE")+rn(" of ",{c:SL2,s:16})+fld("NUMPAGES")+"</w:p></w:ftr>";
+  var ct=X+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>';
+  var rels=X+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>';
+  var drels=X+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/></Relationships>';
+  var iso=new Date().toISOString().replace(/\.\d+Z$/,"Z");
+  var core=X+'<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>Daybook wellbeing summary</dc:title><dc:creator>Daybook, jayvengozon</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">'+iso+'</dcterms:created></cp:coreProperties>';
+  return zipStore([{n:"[Content_Types].xml",t:ct},{n:"_rels/.rels",t:rels},{n:"word/document.xml",t:doc},{n:"word/_rels/document.xml.rels",t:drels},{n:"word/styles.xml",t:styles},{n:"word/header1.xml",t:header},{n:"word/footer1.xml",t:footer},{n:"docProps/core.xml",t:core}])
+}
+function exportDocx(n,det){
+  var blob=buildDocx(n,det),name="Daybook-summary-"+today+".docx";
+  try{var f=new File([blob],name,{type:blob.type});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"Daybook summary"}).catch(function(){});return}}catch(e){}
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()
+}
+function expBody(){
+  var seg=function(vals,cur,act){return'<div style="display:flex;gap:8px">'+vals.map(function(v){var on=String(cur)===String(v[0]);return'<button type="button" class="btn'+(on?'':' ghost')+'" data-a="'+act+'" data-id="'+v[0]+'" aria-pressed="'+on+'" style="flex:1">'+v[1]+'</button>'}).join("")+"</div>"};
+  return'<p class="muted" style="margin-top:0">Create a Word document you can print or share with your therapist or doctor.</p><h2>Period</h2>'+seg([[7,"7 days"],[14,"14 days"],[30,"30 days"]],sheet.n,"expn")
+   +'<h2>What to include</h2>'+seg([[0,"Summary only"],[1,"Summary and entries"]],sheet.det?1:0,"expd")
+   +'<p class="muted">Summary only has averages, totals, patterns, and the day-by-day table. Summary and entries also adds your emotion and activity logs, your notes on each day, and what you ate.</p><p class="muted">Your safety plan, contacts, and PIN are never included. The file is not encrypted, so share it only with people you trust.</p>'
+}
+
 function closeGuide(){stopBox();var g=$("#guide");if(g)g.remove()}
 function openGuide(i){
   var tl=S.safe.tools[i];if(!tl)return;closeGuide();
@@ -743,7 +896,7 @@ document.addEventListener("click",function(ev){
   else if(b.dataset.g==="tp"){gS=Math.max(0,gS-1);stDraw()}
   else if(b.dataset.g==="tr"){gS=0;stDraw()}
 });
-var VERSION="1.12.0";
+var VERSION="1.13.0";
 function foot(){return '<p class="foot">© 2026 jayvengozon™ · Daybook v'+VERSION+'</p>'}
 function lockHtml(){var arm=armed==="pinoff";return '<h2>App lock</h2>'+(P?'<p class="muted">PIN is on. Daybook asks for it when you reopen the app after 30 seconds away.</p><div class="add"><button class="btn ghost" data-a="pinchg">Change PIN</button><button class="btn'+(arm?'':' ghost')+'" data-a="pinoff">'+(arm?'Tap again to turn off':'Turn off PIN')+'</button></div>':'<p class="muted">Protect your journal with a 4-digit PIN. It keeps casual snoopers out. It does not encrypt your data.</p><div class="add"><button class="btn" data-a="pinset">Set a 4-digit PIN</button></div>')}
 var P=null,PK="daybook1pin",TK="daybook1try",ent="",mode="",tmp="",lockMsg="",forgot=false,hideAt=0;

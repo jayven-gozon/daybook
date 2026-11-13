@@ -3,6 +3,20 @@
 All notable changes to Daybook, newest first.
 Daybook © 2026 jayvengozon™. Dates before 12 Nov 2026 were not recorded.
 
+## 1.13.0 (2026-11-12)
+### Added
+- Export your summary as a styled Word document (.docx): More → This week → Export .docx. Choose the last 7, 14, or 30 days, and either summary only or summary plus entries.
+- The document has a title banner, an at-a-glance grid (mood, sleep, energy, entries, enjoyment, checklist, water, coffee, alcohol), a day-by-day table with mood dots, triggers and coping patterns, your questions for your appointment, and upcoming appointments. With entries included it also has emotion and activity logs, your notes on each day, and what you ate.
+- Works offline and shares through the iPhone share sheet (Save to Files, Mail, Messages). Your safety plan, contacts, and PIN are never included.
+
+## 1.12.2 (2026-11-12)
+### Changed
+- Safety plan: the grey example text in "When it is building: my step-away plan" no longer mentions your baby. It now reads "For example: pause, take a slow breath, step away briefly, use grounding, then return". Anything you have typed in the field is unchanged.
+
+## 1.12.1 (2026-11-12)
+### Removed
+- Calm-down toolkit: removed "When irritation builds while caring for the baby". It is gone from your toolkit and from the Add a technique list.
+
 ## 1.12.0 (2026-11-12)
 ### Changed
 - Appearance now offers three backgrounds: **Dark** (a true dark navy), **Gray** (the original gray-blue), and **White**. Dark is the new default, and no longer depends on your phone's dark-mode setting.
